@@ -19,7 +19,8 @@
 clear;
 clear all
 
-cd 'D:\Github\Bayesian-MIDAS'
+cd 'D:\Github\Bayesian-MIDAS' %%%%% Your home directory
+outputfolder = 'D:\Test';
 addpath("Data")
 addpath("Matlab")
 rng(1,'twister');
@@ -92,8 +93,8 @@ calendar_adjustment %calendar_adjustmentv2_win_corrected % selects publication c
 
 %% ----------  Estimation and Modeling Choices -------------------- %
 % Sampler Info
-BURNIN = 500; % Burnin for Gibbs sampler
-MCMC = 500; % Number of Monte Carlo iterations saved
+BURNIN = 50; % Burnin for Gibbs sampler
+MCMC = 50; % Number of Monte Carlo iterations saved
 endpoint = monthvars; % How many monthly lags are related to the LHS
 
 % BMIDAS Choices
@@ -104,9 +105,6 @@ t = 1; % 1 = include t-errors, 0 = normal errors
 % Group-sparsification step                    
 group_sparse = 1; % 1 = apply group-sparsity, 
             % 0 = don't apply group-sparsification step
-
-% Orthonormalisation Choice
-ortho_choice = 1; % 1 = group-orthononormalisation, 2 = none
 
 
 %%
@@ -146,7 +144,7 @@ dq_nfor = []; % saves dates of quarters to be nowcasted
 pincl = zeros(vint,max(unique(groupall)),nfor);
 modall = zeros(vint,MCMC,nfor);
 
-
+ortho_choice = 1; % 1 = group-orthononormalisation, 2 = none
 hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyperpriors for the GIGG prior
 cluster = 10;
 
@@ -366,19 +364,17 @@ output.crps_all = crps_all;
 output.y_pred_all = y_pred_all;
 output.d_q = dq_nfor;
 output.incl = pincl;
-%output.lags = lags_ind;
 output.yf = yf_all;
 output.y = y;
-%output.dq = dq;
 
 
-cd '[Your Output folder]
+
 
 
 if almonrest == 1
     modelname3 = '_almon';
 else
-    modelname3 = '_';
+    modelname3 = '_umidas';
 end
 
 if ortho_choice == 1
@@ -393,9 +389,9 @@ else
     modelname5 = '';
 end
 
-modname = strcat('out_now_gigg_sv_t_test2_',num2str(hyperpars(gg,1)),num2str(hyperpars(gg,2)),modelname3,modelname4,modelname5,".mat");
+modname = strcat('output','_',num2str(hyperpars(gg,1)),'_',num2str(hyperpars(gg,2)),modelname3,modelname4,modelname5,".mat");
 
-save(modname,'output')
+save(strcat(outputfolder,'\',modname),"output")
 
 end
 

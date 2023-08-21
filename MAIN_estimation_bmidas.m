@@ -19,12 +19,14 @@
 clear;
 clear all
 
-cd 'D:\Downloads\bmidas_codes_dk'
+cd 'D:\Github\Bayesian-MIDAS'
+addpath("Data")
+addpath("Matlab")
 rng(1,'twister');
 
 %%%%%%%%%%%%%   Load data   %%%%%%%%%%%%%%%
-[data_quarterly, names_q]= xlsread('MF_DFM_FAMEdata.xlsx','QuarterlyData','A4:e500');
-[data_monthly, names_m]= xlsread('MF_DFM_FAMEdata.xlsx','MonthlyData','A4:aq2000');
+[data_quarterly, names_q]= xlsread('UK_data_bmidas.xlsx','QuarterlyData','A4:e500');
+[data_monthly, names_m]= xlsread('UK_data_bmidas.xlsx','MonthlyData','A4:aq2000');
 %%% important: 
 %  - excel sheet should be read with variable names 
 %  - first data row for data_monthly are transformation indices (will be used in clean_data.m, line 27)
@@ -203,7 +205,8 @@ else
     grp_idx_temp = grp_idx';
 end
 
-% Orthonormalise the data (QR decomposition)
+% Orthonormalise the data (QR decomposition) for validity of
+% Group-sparsification in steps below
 if ortho_choice == 1
 %
 Xsvd = NaN(T,size(Xv,2));
@@ -236,7 +239,7 @@ input.trend = trend;
 input.sv = SV;
 input.t = t ;
 
-[out] = bmidas(input);
+[out] = bmidas_GIGG(input);
 
 
 % Perform group sparsification

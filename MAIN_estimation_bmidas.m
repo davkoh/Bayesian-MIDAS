@@ -12,16 +12,16 @@
 %     available data under "Mixed Frequency Estimation Choices"
 %%%% ------------------ %%%
 
-
-%% Define directory and upload data
 clear;
 clear all
+rng(1,'twister');  %set seed
 
-cd 'D:\Github\Bayesian-MIDAS' %%%%% Your home directory
-outputfolder = 'D:\Test'; %%%%% Specify output directory (replace the current string)
+%% Define directory and upload data
+cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string)
+outputfolder = char([cd,'\Output']);  
 addpath("Data")
 addpath("Matlab")
-rng(1,'twister');
+
 
 %%%%%%%%%%%%%   Load data   %%%%%%%%%%%%%%%
 [data_quarterly, names_q]= xlsread('UK_data_bmidas.xlsx','QuarterlyData','A4:e500');

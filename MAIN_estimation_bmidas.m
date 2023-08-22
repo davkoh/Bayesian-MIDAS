@@ -17,11 +17,12 @@ clear all
 rng(1,'twister');  %set seed
 
 %% Define directory and upload data
-cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string)
+cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
+
+mkdir 'Output'
 outputfolder = char([cd,'\Output']);  
 addpath("Data")
 addpath("Matlab")
-
 
 %%%%%%%%%%%%%   Load data   %%%%%%%%%%%%%%%
 [data_quarterly, names_q]= xlsread('UK_data_bmidas.xlsx','QuarterlyData','A4:e500');

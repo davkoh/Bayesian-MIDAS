@@ -20,7 +20,7 @@ clear;
 clear all
 
 cd 'D:\Github\Bayesian-MIDAS' %%%%% Your home directory
-outputfolder = 'D:\Test'; %%%%% Specify output directory
+outputfolder = 'D:\Test'; %%%%% Specify output directory (replace the current string)
 addpath("Data")
 addpath("Matlab")
 rng(1,'twister');

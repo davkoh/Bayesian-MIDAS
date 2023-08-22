@@ -3,8 +3,6 @@
 %%% Galina Potjagailo, Bank of England
 %%% Date 10.08.2023
 
-%%% The codes are available on GitHub ....
-
 %%% This code estimates the T-SVt-BMIDAS model with GIGG prior and ex-post
 %%% group sparsification
 %   - alternative versions of the model without Trend or SV-t can be
@@ -84,12 +82,10 @@ almonrest = 0; % 1 = use almon lag restrictions (at the moment restricted to a 4
 poly = 4; % Polynomial degree for the Almon lag
 
 % Nowcast calendar choice
-available_data = 0; % 1 = based on latest available data, 
-                    % 0 = pseudo data release calendar (baseline in paper)
-
-%% Calendar Adjustment (According to visaonly and variable selection)
-% Retrieves the real-time publication calendar for the nowcast application
-calendar_adjustment %calendar_adjustmentv2_win_corrected % selects publication calendar based on the above
+pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
+                     % 0 = estimation based on latest available data at time of estimation, 
+                   
+calendar_adjustment  % Retrieves the real-time publication calendar for the nowcast application
 
 %% ----------  Estimation and Modeling Choices -------------------- %
 % Sampler Info
@@ -127,7 +123,7 @@ tin = size(find(d_q == dqstart):find(d_q == dqend),2)-nfor; % Initial in-sample 
 vint = size(pub_m,1); % number of nowcast periods
 missingvalues_mixedfrequency % adjusts the data to starting dates and U-MIDAS sampling
 
-if available_data ==1
+if pseudo_cal ==0
     vint = 1;
     pub_m = avail_ind;
     puball = avail_ind;

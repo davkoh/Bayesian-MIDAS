@@ -20,7 +20,7 @@ clear;
 clear all
 
 cd 'D:\Github\Bayesian-MIDAS' %%%%% Your home directory
-outputfolder = 'D:\Test';
+outputfolder = 'D:\Test'; %%%%% Specify output directory
 addpath("Data")
 addpath("Matlab")
 rng(1,'twister');
@@ -106,6 +106,9 @@ t = 1; % 1 = include t-errors, 0 = normal errors
 group_sparse = 1; % 1 = apply group-sparsity, 
             % 0 = don't apply group-sparsification step
 
+% Parallelisation
+cores = 10; % Number of threads for parallelising the nowcast loops (if too high, will default max workers specified by matlab copy)
+
 
 %%
 %%%%%%%%%%% ============================================== %%%%%%%%%%%            
@@ -144,9 +147,8 @@ dq_nfor = []; % saves dates of quarters to be nowcasted
 pincl = zeros(vint,max(unique(groupall)),nfor);
 modall = zeros(vint,MCMC,nfor);
 
-ortho_choice = 1; % 1 = group-orthononormalisation, 2 = none
+ortho_choice = 1; % group-orthononormalisation, needed for validity of the group-sparsification solution, don't change!
 hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyperpriors for the GIGG prior
-cluster = 10;
 
 for gg = 1:size(hyperpars,1) % Loop over all hyperparameters for the GIGG prior
 tic

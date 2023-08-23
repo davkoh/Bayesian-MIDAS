@@ -150,7 +150,7 @@ hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyp
 for gg = 1:size(hyperpars,1) % Loop over all hyperparameters for the GIGG prior
 tic
 %% Loop over time periods
-parfor (loops = 1:nfor, cluster)
+parfor (loops = 1:nfor, cores)
 Xf = (Xm(1:tin+loops,:));
 yf = y(tin+loops:end,:); 
 T=tin-1+loops;

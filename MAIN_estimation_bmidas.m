@@ -166,7 +166,8 @@ yf_all(loops,:) = yf(1,1);
 
 %% Loop over nowcast periods
 for v = 1:vint
-display (['Estimation for nowcast period ' num2str(v) ' out of ' num2str(vint)])
+display (['Draws for hyperparameter ' num2str(gg) ', nowcast period ' num2str(v) ' out of ' num2str(vint)])    %%% one additional dimension here over which draws are looped?
+
 % Find lags
 xind =  find(puball(v,:)==1); % Find index of lags to include depending on the publication calendar
 

@@ -123,17 +123,11 @@ end
 
 if dyoy ==1 
     d_m = d_m(12:end,:);
-t1_m = find(year(d_m)==beg_y,1);
-t1_q = find(year(d_q)==beg_y,1)+1;
-tend_m = find(year(d_m)==end_y,1,'last');
-tend_q = find(year(d_q)==end_y,1,'last');
-else
-    t1_m = find(year(d_m)==beg_y,1);
-t1_q = find(year(d_q)==beg_y,1)+1;
-tend_m = find(year(d_m)==end_y,1,'last');
-tend_q = find(year(d_q)==end_y,1,'last');
-
 end
+t1_m = find(d_m==beg_s)-2;
+t1_q = find(d_q==beg_s)+1;
+tend_m = find(year(d_m)==year(end_s),1,'last');
+tend_q = find(d_q==end_s);
 
 y_q = data_q_tr(t1_q:tend_q,:);
 y = data_m_tr(t1_m:tend_m,:);
@@ -151,4 +145,4 @@ if find(strcmp('Hours ',varnames_qm)==1) > 0
 varnames_qm{1,idxhours} = 'Hours';
 end
 
-clear beg_y end_y make_plot data_incl_m data_incl_q data_m data_q data_qr_tr data_m_tr figj hard_dummy n n_q save_data save_res stand t1_m t1_q tend_m tend_q varm Varmt varnames varnames_1 varq y transf trans_q idxhours
+clear make_plot data_incl_m data_incl_q data_m data_q data_qr_tr data_m_tr figj hard_dummy n n_q save_data save_res stand t1_m t1_q tend_m tend_q varm Varmt varnames varnames_1 varq y transf trans_q idxhours

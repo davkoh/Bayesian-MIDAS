@@ -17,7 +17,7 @@ clear all
 rng(1,'twister');  %set seed
 
 %% Define directory and upload data
-cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
+cd 'C:\Users\330941\Desktop\BMIDAS codes'   %%%%% Specify output directory (replace the current string) %%%%%%%
 
 mkdir 'Output'
 outputfolder = char([cd,'\Output']);  
@@ -33,10 +33,13 @@ addpath("Matlab")
 
 %% ---------- Set Data Choices ---------- %%
 
-%%%%%%%%%%%  Select Sample Period years %%%%%%%%%%%%%%%%%%
-beg_y = 1980;
-end_y = 2021;
+%%%%%%%%%%%  Select Sample Period  %%%%%%%%%%%%%%%%%%
+beg_s = '31-Dec-1998';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
+end_s = '30-Sep-2021';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
 
+beg_eval_per = '31-Mar-2011';  % specify quarter in which to begin evaluation period "last day - last month of quarter (MMM) - year" 
+                               % full evaluation can be shut off below via "eval_full==0"
+      
 %%%%%%%%%%%  select groups of monthly series to include (individual series in each group see below)
 sur = 1;     % survey data
 act = 1;     % activity and trade data
@@ -71,7 +74,6 @@ Varv = {'VISA'};                                                         % VISA 
 clean_data    %%%% transform and plot data, and prepare data for estimation 
                 
 
-
 %% ---------- Mixed Frequency Estimation Choices ---------- %%
 % mixed-frequency lag structure
 mismatch = 3; % frequency mismatch between LHS and RHS (3 for quarterly vs monthly)
@@ -82,16 +84,23 @@ lags = 0; % Lags of the LHS variable included (1,2,or 3)
 almonrest = 0; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
 poly = 4; % Polynomial degree for the Almon lag
 
+
+%% ---------- Nowcast evaluation choices ------------------- %%
 % Nowcast calendar choice
-pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
+pseudo_cal = 0;      % 1 = pseudo data release calendar (baseline in paper)
                      % 0 = estimation based on latest available data at time of estimation, 
-                   
-calendar_adjustment  % Retrieves the real-time publication calendar for the nowcast application
+                     
+% Choice of out-of sample evaluation               
+eval_full = 0;  % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
+               % 0 - only evaluate over LATEST quarter in the sample
+
+calendar_adjustment  % Retrieves the real-time publication calendar for the nowcast application  %%% HARD CODED FOR NOW
+                       
 
 %% ----------  Estimation and Modeling Choices -------------------- %
 % Sampler Info
-BURNIN = 50; % Burnin for Gibbs sampler
-MCMC = 50; % Number of Monte Carlo iterations saved
+BURNIN = 1000; % Burnin for Gibbs sampler
+MCMC = 1000; % Number of Monte Carlo iterations saved
 endpoint = monthvars; % How many monthly lags are related to the LHS
 
 % BMIDAS Choices
@@ -107,6 +116,7 @@ group_sparse = 1; % 1 = apply group-sparsity,
 cores = 10; % Number of threads for parallelising the nowcast loops (if too high, will default max workers specified by matlab copy)
 
 
+
 %%
 %%%%%%%%%%% ============================================== %%%%%%%%%%%            
 %%%%%%%%%%% ============ AUTOMATIC PART ================== %%%%%%%%%%%
@@ -114,11 +124,15 @@ cores = 10; % Number of threads for parallelising the nowcast loops (if too high
 
 %%%% Nowcast calendar definitions: End date Date, Start date and number of forecast periods choice
 dqend = d_q(end-1);
-dqstart = d_q( eomdate(datetime('31-Mar-1999') + calquarters(0)) == d_q);
+dqstart = d_q(1);
 mstart = eomdate( dqstart - calmonths(monthvars-1)); % Adjust Monthly series for lags
 mend = dqend;
-nfor = size(d_q,1)-find(datetime('31-March-2011') == d_q); % Number of nowcast quarters: can be altered by changing the date
-tin = size(find(d_q == dqstart):find(d_q == dqend),2)-nfor; % Initial in-sample period 
+if eval_full ==1
+     nfor = size(d_q,1)-find(d_q==beg_eval_per); % Number of nowcast quarters: can be altered by changing the date
+else
+    nfor =1 ; %% only evaluation for latest quarter
+end
+tin = size(d_q,1)-1-nfor; % Initial in-sample period 
 
 %% Data Helper (Brings y_m into MIDAS) 
 vint = size(pub_m,1); % number of nowcast periods
@@ -150,10 +164,10 @@ hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyp
 for gg = 1:size(hyperpars,1) % Loop over all hyperparameters for the GIGG prior
 tic
 %% Loop over time periods
-parfor (loops = 1:nfor, cores)
-Xf = (Xm(1:tin+loops,:));
-yf = y(tin+loops:end,:); 
-T=tin-1+loops;
+parfor (tperiod = 1:nfor, cores)
+Xf = (Xm(1:tin+tperiod,:));
+yf = y(tin+tperiod:end,:); 
+T=tin-1+tperiod;
 
     predv = []; % Locals for the scores
     rtscores = [];
@@ -162,12 +176,16 @@ T=tin-1+loops;
     pincl_temp = zeros(vint,max(unique(groupall))); % zeros(vint,size(G,2)); % zeros(vint,size(G,2));
     mod_temp = zeros(vint,MCMC);
             
-yf_all(loops,:) = yf(1,1);
+yf_all(tperiod,:) = yf(1,1);
 
 %% Loop over nowcast periods
 for v = 1:vint
-display (['Draws for hyperparameter ' num2str(gg) ', nowcast period ' num2str(v) ' out of ' num2str(vint)])    %%% one additional dimension here over which draws are looped?
-
+    if pseudo_cal == 1
+       display (['Draws for hyperparameter ' num2str(gg) ', evaluation for time period ' num2str(tperiod) ' of ' num2str(nfor) ', nowcast period ' num2str(v) ' of ' num2str(vint)])    %%% one additional dimension here over which draws are looped?
+    else
+        display (['Draws for hyperparameter ' num2str(gg), ', evaluation for time period ' num2str(tperiod) ' of ' num2str(nfor)])    %%% one additional dimension here over which draws are looped?
+    end
+        
 % Find lags
 xind =  find(puball(v,:)==1); % Find index of lags to include depending on the publication calendar
 
@@ -181,7 +199,7 @@ for ii = 1:sum_grp
     grp_idx(start_idx:end_idx) = repmat(ii,num_grp(ii),1) ;
 end
 
-Xv = (Xm(1:tin-1+loops,xind));
+Xv = (Xm(1:tin-1+tperiod,xind));
 
 if almonrest == 1
 % Transform UMIDAS to Almon MIDAS 
@@ -226,7 +244,7 @@ end
 %% Estimate Model
 input = [];
 input.grp_idx = grp_idx_temp';
-input.Y = y(1:tin-1+loops,:);
+input.Y = y(1:tin-1+tperiod,:);
 input.X = Xv;
 input.burnin = BURNIN;
 input.samples = MCMC;
@@ -281,11 +299,11 @@ scores = []; % local storage
 
 if almonrest == 1
 % Get out of sample Almon data
-[Xv,~] = midas_dat_r2_final(Xm(1:tin+loops,xind),grp_idx,poly);
+[Xv,~] = midas_dat_r2_final(Xm(1:tin+tperiod,xind),grp_idx,poly);
 Xv = (Xv);
 Xv = Xv(end,:);
 else
-    Xv = Xm(tin+loops,xind);
+    Xv = Xm(tin+tperiod,xind);
 end
 
 t_cont = 1;
@@ -337,7 +355,7 @@ rtscores = [rtscores;log(sum(scores))];
 
 %% Save prediction results for each time period
  y_pred = predv;
- pincl(:,:,loops) = pincl_temp;
+ pincl(:,:,tperiod) = pincl_temp;
 
 
 rtrmsfe = [];
@@ -349,10 +367,10 @@ res1 = (vint1 - yf(1,1));
 rtrmsfe = [rtrmsfe;res1];
 end
 
-crps_all(:,loops) = crpsv;
-rtrmsfe_all(:,loops)= rtrmsfe;
-rtlogscores_all(:,loops)= rtscores;
-y_pred_all(:,:,loops) = y_pred';
+crps_all(:,tperiod) = crpsv;
+rtrmsfe_all(:,tperiod)= rtrmsfe;
+rtlogscores_all(:,tperiod)= rtscores;
+y_pred_all(:,:,tperiod) = y_pred';
 
 end
 toc

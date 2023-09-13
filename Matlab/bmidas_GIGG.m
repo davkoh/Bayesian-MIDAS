@@ -191,9 +191,9 @@ if loops>n_burn_in
     end
 end
 
-    if (mod(loops, 1000) == 0)
-        disp([num2str(loops) ' loops of ' num2str(n_samples+n_burn_in)]);
-    end 
+  %  if (mod(loops, 1000) == 0)
+  %      disp([num2str(loops) ' loops of ' num2str(n_samples+n_burn_in)]);
+  %  end 
 
 
 end

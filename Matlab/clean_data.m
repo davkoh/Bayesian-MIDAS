@@ -15,8 +15,10 @@ if vis ==1,   Var = [Var; Varv]; hard_dummy = [hard_dummy,ones(1,size(Varv,1))];
 % select correct series
 Var = Var(~cellfun('isempty',Var));
 data_incl_m = find_variable_indices(Var,strrep(names_m(1,2:end)',' ',''));
+names_incl_m=names_m(1,1+data_incl_m);
 Varq = Varq(~cellfun('isempty',Varq));
 data_incl_q = find_variable_indices(Varq,strrep(names_q(1,2:end)',' ',''));
+names_incl_q=names_q(1,1+data_incl_q);
 
 %% 2) define data sets and names
 data_m = data_monthly(2:end,data_incl_m);

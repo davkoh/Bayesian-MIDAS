@@ -418,3 +418,12 @@ delete(gcp('nocreate'))
 %% Quick Evaluation
 
 rtrmsfe1 = std(rtrmsfe_all(:,1:end)')';  
+
+%% Display results
+format bank
+disp('Point evaluation: Average RMSFE across evaluation quarters: by nowcast periods (rows)')
+mean(rtrmsfe_all,2)
+disp('Density evaluation: Average CRPS across evaluation quarters: by nowcast periods (rows)')
+mean(crps_all,2)
+disp('Average inclusion probabilities across evaluation quarters, by nowcast periods (row) and indicator (col)')
+[names_incl_m; num2cell(mean(pincl,3))]

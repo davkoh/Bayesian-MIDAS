@@ -91,8 +91,8 @@ pseudo_cal = 0;      % 1 = pseudo data release calendar (baseline in paper)
                      % 0 = estimation based on latest available data at time of estimation, 
                      
 % Choice of out-of sample evaluation               
-eval_full = 0;  % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
-               % 0 - only evaluate over LATEST quarter in the sample
+eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
+                     % 0 - only evaluate over LATEST quarter in the sample
 
 calendar_adjustment  % Retrieves the real-time publication calendar for the nowcast application  %%% HARD CODED FOR NOW
                        

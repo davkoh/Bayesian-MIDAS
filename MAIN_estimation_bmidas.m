@@ -81,7 +81,7 @@ monthvars = 6; % amount of months related to LHS quarterly variable (multiples o
 lags = 0; % Lags of the LHS variable included (1,2,or 3)
 
 % Almon polynominal restrictions
-almonrest = 0; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
+almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
 poly = 4; % Polynomial degree for the Almon lag
 
 

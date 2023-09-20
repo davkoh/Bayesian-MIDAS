@@ -170,6 +170,8 @@ pubcalendar = calendar_gen(input);
 % Adjusting for the quarterly publication that we have at period 15
 pubcalendar= [pubcalendar(1:14,:);pubcalendar(14,:);pubcalendar(15: end -1,:)];
 
+puball = pubcalendar;
+
 
 for gg = 1:size(hyperpars,1) % Loop over all hyperparameters for the GIGG prior
 tic

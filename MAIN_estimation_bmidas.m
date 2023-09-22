@@ -151,7 +151,7 @@ G = size(unique(groupall),2);
 % Output Matrices
 crps_all = zeros(vint,nfor); % Storage for CRPS values
 y_pred_all = zeros(MCMC,vint,nfor); % stores predictive distributions for each nowcast
-rtrmsfe_all = zeros(vint,nfor); % stores residuals for each nowcast, based on mean predictive
+rtresid_all = zeros(vint,nfor); % stores residuals for each nowcast, based on mean predictive
 rtlogscores_all = zeros(vint,nfor); % stores log-scores for each nowcast
 yf_all =zeros(nfor,1); % Saves the out-of-sample LHS variable for each quarter
 dq_nfor = []; % saves dates of quarters to be nowcasted
@@ -358,17 +358,17 @@ rtscores = [rtscores;log(sum(scores))];
  pincl(:,:,tperiod) = pincl_temp;
 
 
-rtrmsfe = [];
+rtresid = [];
 
 for u = 1:vint
 test = squeeze(y_pred(u,:,1));
 vint1 = mean(test)';
 res1 = (vint1 - yf(1,1));
-rtrmsfe = [rtrmsfe;res1];
+rtresid = [rtresid;res1];
 end
 
 crps_all(:,tperiod) = crpsv;
-rtrmsfe_all(:,tperiod)= rtrmsfe;
+rtresid_all(:,tperiod)= rtresid;
 rtlogscores_all(:,tperiod)= rtscores;
 y_pred_all(:,:,tperiod) = y_pred';
 
@@ -377,7 +377,7 @@ toc
 
 
 %% Create Storage Structure after model Estimation and Save
-output.rmsfe_all = rtrmsfe_all;
+output.rmsfe_all = rtresid_all;
 output.logscore = rtlogscores_all;
 output.crps_all = crps_all;
 output.y_pred_all = y_pred_all;
@@ -417,12 +417,13 @@ end
 delete(gcp('nocreate'))
 %% Quick Evaluation
 
-rtrmsfe1 = std(rtrmsfe_all(:,1:end)')';  
+rt_rmsfe_overnowcasts = std(rtresid_all')'
+rt_crps_overnowcasts = mean(crps_all,2)
 
 %% Display results
 format bank
 disp('Point evaluation: Average RMSFE across evaluation quarters: by nowcast periods (rows)')
-mean(rtrmsfe_all,2)
+mean(rtresid_all,2)
 disp('Density evaluation: Average CRPS across evaluation quarters: by nowcast periods (rows)')
 mean(crps_all,2)
 disp('Average inclusion probabilities across evaluation quarters, by nowcast periods (row) and indicator (col)')

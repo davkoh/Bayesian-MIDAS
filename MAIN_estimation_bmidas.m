@@ -377,7 +377,7 @@ toc
 
 
 %% Create Storage Structure after model Estimation and Save
-output.rmsfe_all = rtresid_all;
+output.resid_all = rtresid_all;
 output.logscore = rtlogscores_all;
 output.crps_all = crps_all;
 output.y_pred_all = y_pred_all;

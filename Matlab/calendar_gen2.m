@@ -128,7 +128,7 @@ end
 %}
 
 for i = 1:K
-    groupall(:,(i-1)*v+1:v*i) = i;
+    groupall(:,(i-1)*lagsm+1:lagsm*i) = i;
 end
 
 

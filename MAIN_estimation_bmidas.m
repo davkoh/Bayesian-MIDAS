@@ -70,13 +70,24 @@ Varf = {'FTSE';'FTSE250';'FTSEUK';'SP500';'EuroStoxx';'VIX';'UKVIX'};    % Finan
 Vari = {'InflExp5y';'City1y';'City5y'};                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
 Varv = {'VISA'};                                                         % VISA consumer spending
 
-%%% Define Delays (same structure as for defining the variable names)
-% Delays are coded in terms of delay to the latest month of the reference
-% quarter, which receives a value of zero (i.e. June = 0 when nowcasting q2
-%). Delays typically are withing {-2,-1,0} Delays should not be lower than amount
-% of months analyses for a nowcast cycles (otherwise no data available).
-% Order of delays specified in each vector should be matched to the monthly
-% series selected above.
+% Does the data cleaning 
+clean_data    %%%% transform and plot data, and prepare data for estimation  
+
+
+%% ---------- Nowcast evaluation choices ------------------- %%
+% Nowcast calendar choice
+pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
+                     % 0 = estimation based on latest available data at time of estimation, 
+                     
+% Choice of out-of sample evaluation               
+eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
+                     % 0 - only evaluate over LATEST quarter in the sample      
+
+%% ---------- Stylised Calendar Choices  - if pseudo data release calendar chosen above  ---------- %%
+%%% Define publication delays within quarter for the stylised calendar (same structure as for defining the variable names)
+% Each variable (same order as defined above) is assigned a publication delay according to the latest month it is available for at the end of a quarter.
+% I.e., if variable is available up until June at the end of Q2 it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2, March=0, Feb=-1,Jan=-2). 
+% Delays should not be lower than amount of months analysed for a nowcast cycles (otherwise no data available).
 Var_delay  = [];
 Varq_delay = [-2];  
 Vars_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK
@@ -89,11 +100,8 @@ Varf_delay = [];                                                          % Fina
 Vari_delay = [-1;-1;-1];                                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
 Varv_delay = [-1];                                                        % VISA consumer spending
 
-%%% Define Publication Grouping
-% Publication grouping defines which variables are published jointly and
-% numbering identifies order of publication in an idealised month. Order
-% within vector for each group should be matched to the monthly series
-% selected above.
+%%% Define Publication release order for stylised calendar month
+% numbering identifies order of publication in an idealised month, same number specified if variables are released on the same release day
 Var_pubgroup = [];
 Varq_pubgroup = [2];
 Vars_pubgroup = [6;6;6;1;1;1;6];                                         % surveys: CBIs,PMIs, GfK
@@ -104,56 +112,23 @@ Varm_pubgroup = [];                                                      % Money
 Varmt_pubgroup = [5];                                                    % Mortgages
 Varf_pubgroup = [];                                                      % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
 Vari_pubgroup = [];                                                      % Infl expect: 5yr market-based, Citi 1y, City5-10y
-Varv_pubgroup = [5];                                                     % VISA consumer spending
+Varv_pubgroup = [5];                                                     % VISA consumer spending          
 
-%%%% Does the data cleaning 
-clean_data    %%%% transform and plot data, and prepare data for estimation  
-                
+clearvars input % Ignore this
+
+input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
+input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
+
 
 %% ---------- Mixed Frequency Estimation Choices ---------- %%
 % mixed-frequency lag structure
 mismatch = 3; % frequency mismatch between LHS and RHS (3 for quarterly vs monthly)
 monthvars = 6; % amount of months related to LHS quarterly variable (multiples of mismatch, max 12)
-
-% Almon polynominal restrictions
 almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
 poly = 4; % Polynomial degree for the Almon lag
 
 
-%% ---------- Nowcast evaluation choices ------------------- %%
-% Nowcast calendar choice
-pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
-                     % 0 = estimation based on latest available data at time of estimation, 
-                     
-% Choice of out-of sample evaluation               
-eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
-                     % 0 - only evaluate over LATEST quarter in the sample
-
-%% ---------- Set Pulication Calendar (only relevant when using a pseudo calendar) ---------- %%
-% Here, we define an "input" structure which contains the relevant
-% information in order to construct a pseudo real-time calendar as in the
-% paper. Please note, that in the calendar generation code below, it is
-% assumed that the final data publication refers to the quarterly variable
-% coming out.
-
-%%%%%%% User input needed %%%%%%%
-clearvars input % Ignore this
-input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
-input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
-
-
-% Automatic part %
-input.K = size(y_m,2); % number of higher frequency indicators
-input.mismatch = mismatch; % mismatch in sampling frequency
-input.mlags = monthvars; % number of months used for nowcasting
-input.pubdelay = Var_delay; % vector of publication delays of dimension equal to number of higher frequency indicators.
-input.pubseq = Var_pubgroup; % vector of groupings that define which variables come out in which order.
-
-
-[puball groupall] = calendar_gen(input);
-                       
-
-%% ----------  Estimation and Modeling Choices -------------------- %
+%% ----------  Estimation and Modeling Choices -------------- %%
 % Sampler Info
 BURNIN = 200; % Burnin for Gibbs sampler
 MCMC = 200; % Number of Monte Carlo iterations saved
@@ -178,6 +153,17 @@ cores = 10; % Number of threads for parallelising the nowcast loops (if too high
 %%%%%%%%%%% ============ AUTOMATIC PART ================== %%%%%%%%%%%
 %%%%%%%%%%% ============================================== %%%%%%%%%%%     
 
+%%%%%%% Building pseudo publication Calendar 
+%  "input" structure which contains the relevant information in order to construct a pseudo real-time calendar as in the
+% paper. Please note, that in the calendar generation code below, it is assumed that the final data publication refers to the quarterly variable coming out.
+
+input.K = size(y_m,2); % number of higher frequency indicators
+input.mismatch = mismatch; % mismatch in sampling frequency
+input.mlags = monthvars; % number of months used for nowcasting
+input.pubdelay = Var_delay; % vector of publication delays of dimension equal to number of higher frequency indicators.
+input.pubseq = Var_pubgroup; % vector of groupings that define which variables come out in which order.
+[puball groupall] = calendar_gen(input);
+                       
 %%%% Nowcast calendar definitions: End date Date, Start date and number of forecast periods choice
 dqend = d_q(end-1);
 dqstart = d_q(1);
@@ -200,7 +186,7 @@ if pseudo_cal ==0
     puball = avail_ind;
 end
 
-%% Storage
+%%%%%%%%%%%%%%% OUTPUT  Storage
 
 G = size(unique(groupall),2);
 
@@ -297,7 +283,7 @@ Xv = Xsvd;
 end
 
 
-%% Estimate Model
+%%%%%%%%%%%%%%%%%%  Estimate Model %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 input = [];
 input.grp_idx = grp_idx_temp';
 input.Y = y(1:tin-1+tperiod,:);
@@ -322,7 +308,7 @@ else
     betas_final = out.beta;
 end
 
-% Transform back to non-orthogonalised
+%  Transform back to non-orthogonalised
 if ortho_choice == 1
 betas_final = out.beta;
 for j = 1:sum_grp
@@ -330,7 +316,6 @@ xind1 = find(grp_idx_temp == j);
 betas_final(xind1,:) = Qj{j}*Lam_inv_sqr{j}*beta_out(xind1,:)/sqrt(tin);
 end
 end
-
 
 % Variable Selection Info
 idx_first_memb = [];
@@ -340,7 +325,7 @@ end
 pincl_temp(v,unique(groupall(xind))) = (sum(betas_final(idx_first_memb,:)'~=0)/MCMC)' ;
 
 
-%% Nowcasting
+%%%%%%%%%%%%  Nowcasting %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Retrieve parameters
 betas_final = betas_final';
@@ -398,14 +383,12 @@ for j = 1:(MCMC)
 
  end
 
-% Save prediction results by nowcast period
+%%%%%%%%%%%%  Save prediction results by nowcast period %%%%%%%%%%%%%%%
 crps = pscrps(ypredtt, yf(1,1));
 crpsv = [crpsv;crps];
 predv = [predv;ypredtt];
 rtscores = [rtscores;log(sum(scores))];
  
-  
-
  end
 
 
@@ -432,7 +415,7 @@ end
 toc
 
 
-%% Create Storage Structure after model Estimation and Save
+%%%%%%%% Create Storage Structure after model Estimation and Save
 output.resid_all = rtresid_all;
 output.logscore = rtlogscores_all;
 output.crps_all = crps_all;
@@ -441,9 +424,6 @@ output.d_q = dq_nfor;
 output.incl = pincl;
 output.yf = yf_all;
 output.y = y;
-
-
-
 
 
 if almonrest == 1
@@ -476,7 +456,7 @@ delete(gcp('nocreate'))
 rt_rmsfe_overnowcasts = std(rtresid_all')'
 rt_crps_overnowcasts = mean(crps_all,2)
 
-%% Display results
+%%%%%%%%%%%%  Display results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 format bank
 disp('Point evaluation: Average RMSFE across evaluation quarters: by nowcast periods (rows)')
 rt_rmsfe_overnowcasts

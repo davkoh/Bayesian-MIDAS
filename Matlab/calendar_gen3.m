@@ -1,17 +1,23 @@
-function [pubseq_midas groupall] = calendar_gen(input)
+function [pubseq_midas groupall] = calendar_gen3(input)
 %% Unpack information
 
+%%% Next steps:
+% check which information needs to be passed on
+% make sure that the selection algorithm is robust (different subset
+% selections
+% Make sure that the user selection is intuitive
+
 K = input.K; % numger of higher frequency indicators
-mismatch = input.mismatch; % mismatch in sampling frequency
-mlags = input.mlags; % number of monthly observations used for estimation
-mstart = input.mstart; % month index when nowcasting starts
-m_end = input.mend; % month index when nowcasting ends
-pubdelay = input.pubdelay; % publication delays for all K indicators
+mismatch = input.mismatch;
+mlags = input.mlags;
+mstart = input.mstart;
+pubdelay = input.pubdelay; % publication delays for all K
 pubseq = input.pubseq; % publication number within the month GDP for the reference comes out.
+m_end = input.mend;
+qvar_cutoff = find(unique(pubseq(find(abs(pubdelay) == pubdelay(1))))==pubseq(1));
+mvar_cutoff = 1+qvar_cutoff;
 
-
-qvar_cutoff = find(unique(pubseq(find((pubdelay) == pubdelay(1)))) == pubseq(1)); % publications in final month, given the monthly and quarterly publication delays
-
+%% Find the cutoff for the last month
 
 %% Number of MIDAS sampled covariates
 K_midas = mlags*K;
@@ -30,6 +36,11 @@ m_num = length(mstart:m_end);
 pubseq_midas = zeros(1,K_midas);
 pubseq_midas = [];
 
+% Number of unique groups 
+num_groups = length(unique(pubseq));
+unique_groups = unique(pubseq);
+
+
 % Find Starting availability
 pubcal_start = zeros(1,K_midas);
 
@@ -43,11 +54,11 @@ end
 
 for j = 1:m_num
 
-      for  i = unique(pubseq)'
+      for  i = 1:num_groups
 
-          if j == m_num && i == pubseq(qvar_cutoff) % If clause for the cutoff point %%% Needs to change with the new loop definition
+          if j == m_num && i == qvar_cutoff % If clause for the cutoff point
                pubseq_midas = [pubseq_midas;pubcal_start];
-          elseif j == m_num && i>pubseq(qvar_cutoff)
+          elseif j == m_num && i>qvar_cutoff
               [];
           elseif j ~=m_num
                 
@@ -61,21 +72,21 @@ for j = 1:m_num
 
 
               
-            m_ind_update = find(pubseq == i)-1; %find(pubseq == unique_groups(i))-1; %find(pubseq == pubseq(i))-1; %find(pubseq == i)-1;
+            m_ind_update = find(pubseq == unique_groups(i))-1; %find(pubseq == pubseq(i))-1; %find(pubseq == i)-1;
 
            for m = 1:length(m_ind_update)
                ind_beg = m_ind_update(m)*mlags-mlags+1;
                ind_end = m_ind_update(m)*mlags;
 
                % Find which columns to update 
-               colupdate = min(mlags + mstart + pubdelay(m_ind_update(m)+1) + j -1,mlags);
+               colupdate = min(6 + mstart + pubdelay(m_ind_update(m)+1) + j -1,mlags);
 
                % Update the columns 
                pubcal_start(1,ind_end-colupdate+1:ind_end) = 1;
 
            end
 
-        if mlags + mstart + min(pubdelay(m_ind_update+1)) + j -1 > mlags % We assume here that those variables published together have the same publication lag. Ok, so this is really not to update anymore after the columns are full
+        if mlags + mstart + pubdelay(m_ind_update(m)+1) + j -1 > mlags
         else
 
          pubseq_midas = [pubseq_midas;pubcal_start];
@@ -106,6 +117,8 @@ end
     end
 
 %}
+
+
 
 
 

@@ -70,6 +70,8 @@ Varf = {'FTSE';'FTSE250';'FTSEUK';'SP500';'EuroStoxx';'VIX';'UKVIX'};    % Finan
 Vari = {'InflExp5y';'City1y';'City5y'};                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
 Varv = {'VISA'};                                                         % VISA consumer spending
 
+% In similar way define the delays! 
+
 %%%% Does the data cleaning 
 clean_data    %%%% transform and plot data, and prepare data for estimation 
                 
@@ -87,11 +89,11 @@ poly = 4; % Polynomial degree for the Almon lag
 
 %% ---------- Nowcast evaluation choices ------------------- %%
 % Nowcast calendar choice
-pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
+pseudo_cal = 0;      % 1 = pseudo data release calendar (baseline in paper)
                      % 0 = estimation based on latest available data at time of estimation, 
                      
 % Choice of out-of sample evaluation               
-eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
+eval_full = 0;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
                      % 0 - only evaluate over LATEST quarter in the sample
 
 %% ---------- Set Pulication Calendar ---------- %%
@@ -103,17 +105,27 @@ input.lagsm = monthvars; % number of months included
 input.mismatch = 3;
 
 % User input needed
-input.pubdelay = [0 0 0 -1 -1 -1 0 -2 -2 -2 -2 -2 -2 -2 -2 -1 -1]; % vector of publication delays of size of number of higher frequency indicators. 0 = publication in given month refers to values for month. -1 = publication in given month refers to values of previous month. etc.
+input.pubdelay = [0 0 0 -1 -1 -1 0 -2 -2 -2 -2 -2 -2 -2 -2 -1 -1]; % vector of publication delays of dimension equal to number of higher frequency indicators. 0 = publication in given month refers to values for that month. -1 = publication in given month refers to values of previous month. etc.
 input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
-input.qmpub = 2; % Month GDP comes out after the reference quarter: E.g. GDP comes out in 2nd month after reference quarter in UK.
-input.qseqpub = 1; % publication number within the month GDP for the reference comes out. E.g. choose 1 if monthly vars before GDP comes out are fully available. 
+input.qmpub = 2; % Defines nowcast end. Month GDP comes out after the reference quarter: E.g. GDP comes out in 2nd month after reference quarter in UK.
 input.v = 6; % number of publications per month (assume generic month in which all monthly vars get published).
+input.qseqpub= 1; % (needs more explanation) publication number within the month GDP comes out. E.g. choose 1  all the monthly variables that usually come out before GDP are fully available. 
 input(1).pubsec = 4:6; % Specify the sequence at which monthly vars come out together in a given higher frequency period (need to be "input.v" different publications)
 input(2).pubsec = [];
 input(3).pubsec = 8:11;
 input(4).pubsec = 12:15;
 input(5).pubsec = 16:17;
 input(6).pubsec = [1 2 3 7];
+
+% Make a vector with the publications instead of using a structure + a
+% vector of the quartlery ones. Each input to that vector corresponds to
+% one indicator. The user needs to define one long vector for all
+% variables, and then I can pick out the right subsets according to the
+% pubdelay. 
+
+% Add a row in the vector for the quarterly publication. Essentially an
+% idealised month, but GDP row has a special structure which is comes out
+% only every third month
 
 [pubcalendar groupall] = calendar_gen2(input);
 
@@ -126,8 +138,8 @@ puball = pubcalendar;
 
 %% ----------  Estimation and Modeling Choices -------------------- %
 % Sampler Info
-BURNIN = 50; % Burnin for Gibbs sampler
-MCMC = 50; % Number of Monte Carlo iterations saved
+BURNIN = 1000; % Burnin for Gibbs sampler
+MCMC = 1000; % Number of Monte Carlo iterations saved
 endpoint = monthvars; % How many monthly lags are related to the LHS
 
 % BMIDAS Choices
@@ -450,8 +462,10 @@ rt_crps_overnowcasts = mean(crps_all,2)
 %% Display results
 format bank
 disp('Point evaluation: Average RMSFE across evaluation quarters: by nowcast periods (rows)')
-mean(rtresid_all,2)
+rt_rmsfe_overnowcasts
 disp('Density evaluation: Average CRPS across evaluation quarters: by nowcast periods (rows)')
-mean(crps_all,2)
+rt_crps_overnowcasts
 disp('Average inclusion probabilities across evaluation quarters, by nowcast periods (row) and indicator (col)')
 [names_incl_m; num2cell(mean(pincl,3))]
+
+

@@ -1,16 +1,25 @@
-function [pubseq_midas groupall] = calendar_gen(input)
+function [pubseq_midas groupall] = calendar_gen3(input)
 %% Unpack information
 
+%%% Next steps:
+% check which information needs to be passed on
+% make sure that the selection algorithm is robust (different subset
+% selections
+% Make sure that the user selection is intuitive
+
 K = input.K; % numger of higher frequency indicators
-mismatch = input.mismatch; % mismatch in sampling frequency
-mlags = input.mlags; % number of monthly observations used for estimation
-mstart = input.mstart; % month index when nowcasting starts
-m_end = input.mend; % month index when nowcasting ends
-pubdelay = input.pubdelay; % publication delays for all K indicators
+mismatch = input.mismatch;
+mlags = input.mlags;
+mstart = input.mstart;
+pubdelay = input.pubdelay; % publication delays for all K
 pubseq = input.pubseq; % publication number within the month GDP for the reference comes out.
+qindex = pubseq(1);
+
+m_end = input.mend;
 
 
-qvar_cutoff = find(unique(pubseq(find((pubdelay) == pubdelay(1)))) == pubseq(1)); % publications in final month, given the monthly and quarterly publication delays
+qvar_cutoff = find(unique(pubseq(find((pubdelay) == pubdelay(1)))) == pubseq(1)); %qvar_cutoff = 1;%find(unique(pubseq(find(abs(pubdelay) == pubdelay(1))))==pubseq(1));
+%mvar_cutoff = 1+qvar_cutoff;
 
 
 %% Number of MIDAS sampled covariates
@@ -29,6 +38,11 @@ m_num = length(mstart:m_end);
 % Create U-MIDAS availability
 pubseq_midas = zeros(1,K_midas);
 pubseq_midas = [];
+
+% Number of unique groups 
+num_groups = length(unique(pubseq));
+unique_groups = unique(pubseq);
+
 
 % Find Starting availability
 pubcal_start = zeros(1,K_midas);
@@ -75,7 +89,7 @@ for j = 1:m_num
 
            end
 
-        if mlags + mstart + min(pubdelay(m_ind_update+1)) + j -1 > mlags % We assume here that those variables published together have the same publication lag. Ok, so this is really not to update anymore after the columns are full
+        if mlags + mstart + pubdelay(m_ind_update(m)+1) + j -1 > mlags
         else
 
          pubseq_midas = [pubseq_midas;pubcal_start];

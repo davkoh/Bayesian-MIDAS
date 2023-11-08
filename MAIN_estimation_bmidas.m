@@ -1,7 +1,7 @@
 %% Estimation script for "Flexible Bayesian MIDAS: time‑variation, group‑shrinkage and sparsity"
 %%% David Kohns, Aalto University
 %%% Galina Potjagailo, Bank of England
-%%% Date 10.08.2023
+%%% Date 08.11.2023
 
 %%% This code estimates the T-SVt-BMIDAS model with GIGG prior and ex-post
 %%% group sparsification
@@ -62,7 +62,7 @@ Var  = {};
 Varq = {'GDP_Q'};  ...;'CONS';'HOURS';'INV';
 Vars = {'CBI_ES';'CBI_S';'CBI_EO';'PMI_M';'PMI_S';'PMI_C';'GfK'};        % surveys: CBIs,PMIs, GfK
 Vara = {'IoP';'IoS';'Exp';'Imp'};                                        % IoP,IoS,Exports,Imports
-Varl = {'UR';'EMP';'Vacancies';'Hours'}; ...'AWE';'Claimant'            % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+Varl = {'UR';'EMP';'Vacancies';'Hours'}; ...'AWE';'Claimant'             % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
 Varp = {'CPI';'CoreCPI';'RPI';'RPIX';'PPIout';'PPIin';'HPr';'Oil'};      % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil
 Varm = {'Money';'BaseRate';'LIBOR';'EXR'};                               % Money: M4,Base rate,LIBOR,Exrate
 Varmt = {'Mortgage'};                                                    % Mortgages
@@ -70,15 +70,50 @@ Varf = {'FTSE';'FTSE250';'FTSEUK';'SP500';'EuroStoxx';'VIX';'UKVIX'};    % Finan
 Vari = {'InflExp5y';'City1y';'City5y'};                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
 Varv = {'VISA'};                                                         % VISA consumer spending
 
+%%% Define Delays (same structure as for defining the variable names)
+% Delays are coded in terms of delay to the latest month of the reference
+% quarter, which receives a value of zero (i.e. June = 0 when nowcasting q2
+%). Delays typically are withing {-2,-1,0} Delays should not be lower than amount
+% of months analyses for a nowcast cycles (otherwise no data available).
+% Order of delays specified in each vector should be matched to the monthly
+% series selected above.
+Var_delay  = [];
+Varq_delay = [-2];  
+Vars_delay = [0;0;0;-1;-1;-1;0];
+Vara_delay = [-2;-2;-2;-2];
+Varl_delay = [-2;-2;-2;-2];
+Varp_delay = [];
+Varm_delay = [];
+Varmt_delay = [-1];
+Varf_delay = [];
+Vari_delay = [-1;-1;-1];
+Varv_delay = [-1];  
+
+%%% Define Publication Grouping
+% Publication grouping defines which variables are published jointly and
+% numering identifies order of publication in an idealised month. Order
+% within vector for each group should be matched to the monthly series
+% selected above.
+Var_pubgroup = [];
+Varq_pubgroup = [2];
+Vars_pubgroup = [6;6;6;1;1;1;6];                                         % surveys: CBIs,PMIs, GfK
+Vara_pubgroup = [3;3;3;3];                                               % IoP,IoS,Exports,Imports
+Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+Varp_pubgroup = [];                                                      % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil
+Varm_pubgroup = [];                                                      % Money: M4,Base rate,LIBOR,Exrate
+Varmt_pubgroup = [5];                                                    % Mortgages
+Varf_pubgroup = [];                                                      % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
+Vari_pubgroup = [];                                                      % Infl expect: 5yr market-based, Citi 1y, City5-10y
+Varv_pubgroup = [5];                                                     % VISA consumer spending
+
 %%%% Does the data cleaning 
-clean_data    %%%% transform and plot data, and prepare data for estimation 
+clean_data    %%%% transform and plot data, and prepare data for estimation  
                 
 
 %% ---------- Mixed Frequency Estimation Choices ---------- %%
 % mixed-frequency lag structure
 mismatch = 3; % frequency mismatch between LHS and RHS (3 for quarterly vs monthly)
 monthvars = 6; % amount of months related to LHS quarterly variable (multiples of mismatch, max 12)
-lags = 0; % Lags of the LHS variable included (1,2,or 3)
 
 % Almon polynominal restrictions
 almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
@@ -87,20 +122,41 @@ poly = 4; % Polynomial degree for the Almon lag
 
 %% ---------- Nowcast evaluation choices ------------------- %%
 % Nowcast calendar choice
-pseudo_cal = 0;      % 1 = pseudo data release calendar (baseline in paper)
+pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
                      % 0 = estimation based on latest available data at time of estimation, 
                      
 % Choice of out-of sample evaluation               
 eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
                      % 0 - only evaluate over LATEST quarter in the sample
 
-calendar_adjustment  % Retrieves the real-time publication calendar for the nowcast application  %%% HARD CODED FOR NOW
+%% ---------- Set Pulication Calendar (only relevant when using a pseudo calendar) ---------- %%
+% Here, we define an "input" structure which contains the relevant
+% information in order to construct a pseudo real-time calendar as in the
+% paper. Please note, that in the calendar generation code below, it is
+% assumed that the final data publication refers to the quarterly variable
+% coming out.
+
+%%%%%%% User input needed %%%%%%%
+clearvars input % Ignore this
+input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
+input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
+
+
+% Automatic part %
+input.K = size(y_m,2); % number of higher frequency indicators
+input.mismatch = mismatch; % mismatch in sampling frequency
+input.mlags = monthvars; % number of months used for nowcasting
+input.pubdelay = Var_delay; % vector of publication delays of dimension equal to number of higher frequency indicators.
+input.pubseq = Var_pubgroup; % vector of groupings that define which variables come out in which order.
+
+
+[puball groupall] = calendar_gen(input);
                        
 
 %% ----------  Estimation and Modeling Choices -------------------- %
 % Sampler Info
-BURNIN = 1000; % Burnin for Gibbs sampler
-MCMC = 1000; % Number of Monte Carlo iterations saved
+BURNIN = 200; % Burnin for Gibbs sampler
+MCMC = 200; % Number of Monte Carlo iterations saved
 endpoint = monthvars; % How many monthly lags are related to the LHS
 
 % BMIDAS Choices
@@ -135,8 +191,8 @@ end
 tin = size(d_q,1)-1-nfor; % Initial in-sample period 
 
 %% Data Helper (Brings y_m into MIDAS) 
-vint = size(pub_m,1); % number of nowcast periods
-missingvalues_mixedfrequency % adjusts the data to starting dates and U-MIDAS sampling
+vint = size(puball,1); % number of nowcast periods
+missingvalues_mixedfrequency_2 % adjusts the data to starting dates and U-MIDAS sampling
 
 if pseudo_cal ==0
     vint = 1;
@@ -423,8 +479,8 @@ rt_crps_overnowcasts = mean(crps_all,2)
 %% Display results
 format bank
 disp('Point evaluation: Average RMSFE across evaluation quarters: by nowcast periods (rows)')
-mean(rtresid_all,2)
+rt_rmsfe_overnowcasts
 disp('Density evaluation: Average CRPS across evaluation quarters: by nowcast periods (rows)')
-mean(crps_all,2)
+rt_crps_overnowcasts
 disp('Average inclusion probabilities across evaluation quarters, by nowcast periods (row) and indicator (col)')
 [names_incl_m; num2cell(mean(pincl,3))]

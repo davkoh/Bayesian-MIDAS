@@ -108,14 +108,11 @@ avail_ind = vec(avail_ind)';
 
 % Add quarterly variables
 
-%{
 if lags>0
     idxlag = find( strcmp('GDP_Q',varnames_qm(size(y_m,2)+1:end)) == 1 );
     for i = 1:lags
-        Xm = [y_q0(find(dqstart == d_q0)-i:end-i,idxlag) Xm];
+        Xm = [Xm y_q0(find(dqstart == d_q0)-i:end-i,idxlag)];
     end
 end
-%}
-
 
 clear c avail_ind_temp data_q_tr F f_m flag i_nl id id_nan idx idx_i2 j lam_m NoNaN_m PCAs T_i transf_q varnames_q x_i xtemp0 xtemp1 y_mm y_q y_temp y_temp_fitted y_test y_q0 d_q0

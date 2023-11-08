@@ -79,15 +79,15 @@ Varv = {'VISA'};                                                         % VISA 
 % series selected above.
 Var_delay  = [];
 Varq_delay = [-2];  
-Vars_delay = [0;0;0;-1;-1;-1;0];
-Vara_delay = [-2;-2;-2;-2];
-Varl_delay = [-2;-2;-2;-2];
-Varp_delay = [];
-Varm_delay = [];
-Varmt_delay = [-1];
-Varf_delay = [];
-Vari_delay = [-1;-1;-1];
-Varv_delay = [-1];  
+Vars_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK
+Vara_delay = [-2;-2;-2;-2];                                               % IoP,IoS,Exports,Imports
+Varl_delay = [-2;-2;-2;-2];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count,
+Varp_delay = [];                                                          % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil                                            
+Varm_delay = [];                                                          % Money: M4,Base rate,LIBOR,Exrate
+Varmt_delay = [-1];                                                       % Mortgages
+Varf_delay = [];                                                          % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
+Vari_delay = [-1;-1;-1];                                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
+Varv_delay = [-1];                                                        % VISA consumer spending
 
 %%% Define Publication Grouping
 % Publication grouping defines which variables are published jointly and

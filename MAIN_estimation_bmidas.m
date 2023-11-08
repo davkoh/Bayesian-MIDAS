@@ -91,7 +91,7 @@ Varv_delay = [-1];                                                        % VISA
 
 %%% Define Publication Grouping
 % Publication grouping defines which variables are published jointly and
-% numering identifies order of publication in an idealised month. Order
+% numbering identifies order of publication in an idealised month. Order
 % within vector for each group should be matched to the monthly series
 % selected above.
 Var_pubgroup = [];

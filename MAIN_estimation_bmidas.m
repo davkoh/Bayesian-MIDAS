@@ -70,10 +70,6 @@ Varf = {'FTSE';'FTSE250';'FTSEUK';'SP500';'EuroStoxx';'VIX';'UKVIX'};    % Finan
 Vari = {'InflExp5y';'City1y';'City5y'};                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
 Varv = {'VISA'};                                                         % VISA consumer spending
 
-% Does the data cleaning 
-clean_data    %%%% transform and plot data, and prepare data for estimation  
-
-
 %% ---------- Nowcast evaluation choices ------------------- %%
 % Nowcast calendar choice
 pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
@@ -152,6 +148,9 @@ cores = 10; % Number of threads for parallelising the nowcast loops (if too high
 %%%%%%%%%%% ============================================== %%%%%%%%%%%            
 %%%%%%%%%%% ============ AUTOMATIC PART ================== %%%%%%%%%%%
 %%%%%%%%%%% ============================================== %%%%%%%%%%%     
+
+%%%%%%%% Does the data cleaning 
+clean_data    %%%% transform and plot data, and prepare data for estimation  
 
 %%%%%%% Building pseudo publication Calendar 
 %  "input" structure which contains the relevant information in order to construct a pseudo real-time calendar as in the

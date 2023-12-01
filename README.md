@@ -24,11 +24,12 @@ In order to run the code, makes sure the following is accessible in your directo
 To run 'Main_estimation_bmidas.m", one can set various modelling and specification choices at the beginning of the code, which will then be executed in the automatic part of the code.
 - define correct directory
 - estimation sample period and out-of-sample evaluation period
-- groups of indicators can be included or dropped
-- the nowcast evaluation can be shut off and only the latest quarter and the latest nowcast period can be evaluation
-- model components can be shut off: time-varyind trend, stochastic volatility, t-distributed errors
-- the ex-post sparsification step can be shut off
+- (groups of) indicators can be included or dropped
+- define parameters of the publication calendar and nowcast periods over which re-estimation and evaluation will be carried out: publication delay for each indicator, data release order within quarter, starting and ending month of the nowcast cycle
+- the nowcast evaluation over the pseudo real time calendar can be shut off and only the latest quarter and the latest nowcast period can be evaluated
 - the MIDAS frequency mismatch and number of high-frequency lags can be defined, and Almon lag polynomial restrictions can be imposed
-  
+- flexible model components can be shut off: time-varyind trend, stochastic volatility, t-distributed errors
+- the ex-post sparsification step can be shut off
+
 
 

@@ -82,8 +82,7 @@ eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluati
 %% ---------- Stylised Calendar Choices  - if pseudo data release calendar chosen above  ---------- %%
 %%% Define publication delays within quarter for the stylised calendar (same structure as for defining the variable names)
 % Each variable (same order as defined above) is assigned a publication delay according to the latest month it is available for at the end of a quarter.
-% I.e., if variable is available up until June at the end of Q2 it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2, March=0, Feb=-1,Jan=-2). 
-% Delays should not be lower than amount of months analysed for a nowcast cycles (otherwise no data available).
+% I.e., for Q2 nowcasts, if variable is available up until June, it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2); and for Q1 nowcasts: March=0, Feb=-1,Jan=-2.
 Var_delay  = [];
 Varq_delay = [-2];  
 Vars_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK

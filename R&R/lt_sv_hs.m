@@ -1,12 +1,14 @@
 %% The Local Trend Model with SV with Horseshoe Prior %%
 
+clear all;
+
 % Choose Parameters of the DGP
 T = 200;
-sd_tau = .05;
+sd_tau = 0.1;
 t_0 = 0;
 sd_y = 1;
 h_0 = 0;
-sd_h = 0.5;
+sd_h = 0.1;
 
 % Generate Data
 tau = zeros(T,1);
@@ -26,9 +28,9 @@ for t= 1:T
     if t == 100
         tau(t) = tau(t) + 10;
         h(t) = h(t);
-        y(t) = tau(t) + exp(1/2*h(1))*randn;
+        y(t) = tau(t) + exp(1/2*h(t))*randn;
     else
-        y(t) = tau(t) + exp(1/2*h(t))*randn + 10;
+        y(t) = tau(t) + exp(1/2*h(t))*randn;
     end
 end
 

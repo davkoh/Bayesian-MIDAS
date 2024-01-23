@@ -2,9 +2,9 @@
 
 % Choose Parameters of the DGP
 T = 200;
-sd_tau = .5;
+sd_tau = .1;
 t_0 = 0;
-sd_y = 0.5;
+sd_y = 0.1;
 
 % Generate Data
 tau = zeros(T,1);
@@ -18,8 +18,8 @@ for t= 1:T
     end
 
     if t == 100
-        tau(t) = tau(t) + 10;
-        y(t) = tau(t) + sd_y*randn;
+        tau(t) = tau(t) ;
+        y(t) = tau(t) + sd_y*randn + 50;
     else
         y(t) = tau(t) + sd_y*randn;
     end

@@ -1,9 +1,9 @@
-%% The Local Trend Model with SV with Horseshoe Prior %%
+%% The Local Trend Model with SV, Horseshoe Prior  in SV%%
 
 clear all;
 
 % Choose Parameters of the DGP
-T = 200;
+T = 80;
 sd_tau = 0.1;
 t_0 = 0;
 sd_y = 1;
@@ -51,6 +51,7 @@ plot(tau_true)
 V_t0 = 10; % Variance of initial condition
 nu_sig0 = 3; S_sig0 = 1*(nu_sig0-1); % \sigma^2
 Vh = 10;
+nu_omega0 = 3; S_omega0 = .25^2*(nu_omega0-1); % \omega_tau^2
 
 % Set up difference matrix
 H = speye(T) - sparse(2:T,1:(T-1),ones(1,T-1),T,T);
@@ -68,6 +69,8 @@ lambdah=ones(T,1);
 Sigh=(lambdah.*tauh);
 h = ones(T,1);
 h0 = log(var(y));
+
+ omega_tau2 = .1;
 
 % Sampler Specs
 rng(1,'twister');
@@ -88,25 +91,18 @@ h0_save = NaN(mcmc,1);
 
 for i = 1:iter
     % Sample \tau
-    K_tau = H'*sparse(diag(1./Sigma_tau))*H +  1./exp(h).*speye(T);
+    K_tau = H'*H/omega_tau2 +  1./exp(h).*speye(T);
     C_tau = chol(K_tau,"lower");
-    tau_hat = K_tau\(tau0*H'*sparse(diag(1./Sigma_tau))*H*ones(T,1) + 1./exp(h).*speye(T)*y);
+    tau_hat = K_tau\(tau0*H'*H*ones(T,1)/omega_tau2 + 1./exp(h).*speye(T)*y);
     tau = tau_hat + C_tau'\randn(T,1);
 
-    % Sample \Sigma_tau
-        e = tau-[tau0;tau(1:T-1)];
-        lam = 1./gamrnd(1, 1./( 1./eta_lam + 0.5*e.^2/nu));
-        % sample Global
-        nu = 1/gamrnd( 0.5*T, 1/( 1/eta_nu + 0.5*sum(sum(e.^2./lam))  ) );
-        % sample mixture local
-        eta_lam = 1./gamrnd(1, 1./(1 + 1./lam));
-        % samplel mixture
-        eta_nu = 1/gamrnd(1, 1/( 1 + 1/nu));
-    Sigma_tau = nu*lam;
+    % sample omega2
+    omega_tau2 = 1/gamrnd(nu_omega0 + T/2, ...
+    1/(S_omega0 + (tau-tau0)'*H'*H*(tau-tau0)/2));
 
     % Sample \tau_0
-    Ktau0 = 1/V_t0 + 1/(Sigma_tau(1));
-    tau0_hat = Ktau0\(tau(1)/Sigma_tau(1));
+    Ktau0 = 1/V_t0 + 1/omega_tau2;
+    tau0_hat = Ktau0\(tau(1)/omega_tau2);
     tau0 = tau0_hat + sqrt(Ktau0)'\randn;
 
     %% Sample h

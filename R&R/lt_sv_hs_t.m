@@ -70,6 +70,8 @@ lambdah=ones(T,1);
 Sigh=(lambdah.*tauh);
 h = ones(T,1);
 h0 = log(var(y));
+nut = 5;
+lamt= ones(T,1);
 
 % Sampler Specs
 rng(1,'twister');
@@ -87,12 +89,14 @@ lam_save = NaN(T,mcmc);
 nu_save = NaN(mcmc,1);
 h_save = NaN(T,mcmc);
 h0_save = NaN(mcmc,1);
+lamt_save = NaN(T,mcmc);
+nut_save = NaN(mcmc,1);
 
 for i = 1:iter
     % Sample \tau
-    K_tau = H'*sparse(diag(1./Sigma_tau))*H +  1./exp(h).*speye(T);
+    K_tau = H'*sparse(diag(1./Sigma_tau))*H +  1./exp(h).*1./lamt.*speye(T);
     C_tau = chol(K_tau,"lower");
-    tau_hat = K_tau\(tau0*H'*sparse(diag(1./Sigma_tau))*H*ones(T,1) + 1./exp(h).*speye(T)*y);
+    tau_hat = K_tau\(tau0*H'*sparse(diag(1./Sigma_tau))*H*ones(T,1) + 1./exp(h).*1./lamt.*speye(T)*y);
     tau = tau_hat + C_tau'\randn(T,1);
 
     % Sample \Sigma_tau
@@ -112,8 +116,8 @@ for i = 1:iter
     tau0 = tau0_hat + sqrt(Ktau0)'\randn;
 
     %% Sample h
-    u = y-tau;
-    Ystar = log(u.^2 + .0001);
+    u = (y-tau);
+    Ystar = log((u.^2).*lamt.^(-1) + .0001);
     h = SVRW2(Ystar,h,Sigh,h0);
 
     %% sample h0
@@ -129,7 +133,14 @@ for i = 1:iter
         xi=1./gamrnd(1,1./(1+1./tauh));
         tauh=1./gamrnd((T+1)/2, 1./(1./xi +0.5*sum(sum(e.^2./lambdah))  ));
         Sigh=(lambdah.*tauh)+1e-10;
-    
+
+        %% Sample t-errors
+       % h = zeros(T,1);
+lamt = 1./gamrnd((nut+1)/2,2./(nut+(1./exp(h).*speye(T))*(u.^2)));
+
+% sample nu
+[nut,flag] = sample_nu_MH(lamt,nut,50);
+
 
 if i> burn 
     isave = i - burn;
@@ -140,6 +151,8 @@ if i> burn
     nu_save(isave) = nu;
     h_save(:,isave) = h;
     h0_save(isave) = h0;
+    lamt_save(:,isave) = lamt;
+    nut_save(isave) = nut;
 end
 
 end

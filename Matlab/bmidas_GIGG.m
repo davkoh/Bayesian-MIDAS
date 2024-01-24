@@ -331,7 +331,7 @@ function [lam,nu_y] =  t_samp(y,tau,X,beta,h,nu_y,nu_ub,H,lam)
 
 %% sample lam
 temp1 = (H\(y-tau-X*beta)).^2./(exp(h).*lam)/2; 
-lam =  1./gamrnd((nu_y+1)/2,1./(nu_y/2+temp1)); 
+lam =  1./gamrnd((nu_y+1)/2,2./(nu_y/2+temp1)); 
 
 [nu_y,flag] = sample_nu_MH(lam,nu_y,nu_ub);
 

@@ -9,7 +9,7 @@ rng(1,'twister');
 % Choose Parameters of the DGP
 T = 200;
 sd_y = 0.1;
-alpha = 0;
+alpha = 1;
 omega_tau = 0.2;
 
 
@@ -40,7 +40,7 @@ plot(tautilde_true)
 % sigma_y^2 ~ IG(a,b)
 nu_sig0 = 3; S_sig0 = 1*(nu_sig0-1);
 % \tilde{tau}_0 ~ N(0,V_tau^2)
-nu_tautilde0 = 0.01; S_tautilde0 = 0.01;
+nu_tautilde0 = 20; S_tautilde0 = (nu_tautilde0-1)*1;
 
 % Pre-compute useful things
 H = speye(T) - sparse(2:T,1:(T-1),ones(1,T-1),T,T);
@@ -57,6 +57,7 @@ tautilde_0 = 0;
 sigy2 = 0.1;
 V_tautilde0 = 0.1;
 Sigma_tau = nu_beta*lamba_beta;
+omegatau = 0.1;
 
 % Sampler Specs
 rng(1,'twister');
@@ -70,17 +71,20 @@ mcmc = iter-burn;
 tau_save = NaN(T,mcmc);
 tau0_save = NaN(mcmc,1);
 sig2_save = NaN(mcmc,1);
-lam_save = NaN(T,mcmc);
+lam_save = NaN(2,mcmc);
 nu_save = NaN(mcmc,1);
 h_save = NaN(T,mcmc);
 h0_save = NaN(mcmc,1);
 nut_save = NaN(mcmc,1);
+tautilde_save = NaN(T,mcmc);
+sigy2_save = NaN(mcmc,1);
+beta_save = NaN(2,mcmc);
 
 for i = 1:iter
     %% Sample tautilde
-    Xgam = omega_tau*speye(T);
+    Xgam = omegatau*speye(T);
     Kgam = Pgam + Xgam'*Xgam/sigy2;
-    gam_hat = Kgam\( Hinv*tautilde_0*ones(T,1) + 1/sigy2*Xgam'*(y-alpha));
+    gam_hat = Kgam\( tautilde_0*H'*H*ones(T,1) + 1/sigy2*Xgam'*(y-alpha));
     tau = gam_hat + chol(Kgam,'lower')'\randn(T,1);
    
 
@@ -89,14 +93,12 @@ for i = 1:iter
     Kbeta = diag(1./Sigma_tau) + 1/sigy2 * X'*X;
     beta_hat = Kbeta\(1/sigy2*X'*y);
     beta = beta_hat + chol(Kbeta,'lower')'\randn(2,1);
-    alpha = beta(1); omegatau = beta(2);
 
     %% permutate the signs of tau and sigtau
     U = -1 + 2*(rand>0.5);
     tau = U*tau;
     beta(2) = U*beta(2);
     alpha = beta(1); omegatau = beta(2);
-    tautilde_0 = U*tautilde_0;
 
     %% Sample Sigma_tau
         % Sample 
@@ -106,24 +108,41 @@ for i = 1:iter
         % sample mixture local
         eta_lam = 1./gamrnd(1, 1./(1 + 1./lam_beta));
         % samplel mixture
-        eta_nu = 1/gamrnd(1, 1/( 1 + 1/nu_beta));
+        eta_nubeta = 1/gamrnd(1, 1/( 1 + 1/nu_beta));
     Sigma_tau = nu_beta*lam_beta;
 
     %% Sample tautilde_0
     Ktautilde_0 = 1/(V_tautilde0) + 1;
-    tautilde_0_hat = Ktautilde_0\(tau(1)/(V_tautilde0));
+    tautilde_0_hat = Ktautilde_0\(tau(1));
     tautilde_0 = tautilde_0_hat + chol(Ktautilde_0,'lower')'\randn;
+    tautilde_0 = U*tautilde_0;
 
     %% Sample V_tautilde0
-    V_tautilde0 = 1/gamrnd(nu_tautilde0 + 1/2,1/(S_tautilde0 + (tau(1)-alpha)'*(tau(1)-alpha)/2));
+    V_tautilde0 = 1/gamrnd(nu_tautilde0 + 1/2,1/(S_tautilde0 + (tautilde_0)'*(tautilde_0)/2));
 
     %% Sample sigy2
     sigy2 = 1/gamrnd(nu_sig0 + T/2,1/(S_sig0 + (y-alpha - omegatau*tau)'*(y-alpha - omegatau*tau)/2));
 
 
-
+    if i> burn 
+    isave = i - burn;
+    tautilde_save(:,isave) = tau;
+    tau_save(:,isave) = [alpha + omegatau*tau(1);alpha + omegatau*tau(2:T) ];
+    tau0_save(isave) = alpha + omegatau*tau(1);
+    lam_save(:,isave) = lam_beta;
+    nu_save(isave) = nu_beta;
+    sigy2_save(isave) = sigy2;
+    beta_save(:,isave) = beta;
+end
 
 
 
 end
 
+ptau = mean(tau_save,2);
+clf;
+plot(tau_true)
+hold on 
+plot(ptau)
+
+rmse = sqrt(sum((tau_true-ptau).^2)/T)

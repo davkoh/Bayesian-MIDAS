@@ -12,9 +12,9 @@ sd_tau = 0.1;
 t_0 = 0;
 sd_y = 1;
 h_0 = 0;
-sd_h = 0.1;
-g_0 = 10;
-sd_g = 1;
+sd_h = 0.01;
+g_0 = 0;
+sd_g = 0.01;
 
 % Generate Data
 tau = zeros(T,1);
@@ -174,7 +174,7 @@ hold on
 plot(ph,LineWidth=2)
 plot(h_hat,LineWidth=2)
 xlabel("Time")
-legend("Target","HS (RMSE = 0.6)","Our Model (RMSE = 0.71)")
+legend("Target","HS (RMSE = 0.6)","Our Model without t-errors (RMSE = 1.58)")
 
 % Comparing degrees of freedom
 fig4 = figure;

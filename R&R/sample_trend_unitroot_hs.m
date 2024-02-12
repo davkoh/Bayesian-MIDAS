@@ -9,7 +9,11 @@ function [tau,Sigmatau,tau0,lambdatau,nutau] = sample_trend_unitroot_hs(y,tau,Si
 
  % Sample \tau
 K_tau = H'*sparse(diag(1./Sigmatau))*H +  1./diag_obs.*speye(T);
+try
 C_tau = chol(K_tau,"lower");
+catch
+    C_tau = chol(nearestSPD(K_tau),"lower");
+end
 tau_hat = K_tau\(tau0*H'*sparse(diag(1./Sigmatau))*H*ones(T,1) + 1./diag_obs.*speye(T)*y);
 tau = tau_hat + C_tau'\randn(T,1);
 

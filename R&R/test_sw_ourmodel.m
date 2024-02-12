@@ -61,8 +61,8 @@ valg = 0;
 a0_h = 0; b0_h = 10;
 a0_g = 0; b0_g = 10;
 a0_tau = 0; b0_tau = 10;
-Vomegah = .2;
-Vomegag = .2;
+Vomegah = .0001;
+Vomegag = .0001;
     
 % initialize the Markov chain
 h0 = log(var(y))/5; g0 = log(var(y))/10; tau0 = mean(y);
@@ -118,7 +118,7 @@ for isim = 1:nsim+burnin
     tau0 = tau0_hat + sqrt(Ktau0)'\randn;
 
         %% Sample t-errors
-    [lamt,nut] = sample_t_errors(u,lamt,nut,nub,exp(h));
+    [lamt,nut] = sample_t_errors(y-tau,lamt,nut,nub,exp(h));
             
     if (mod(isim, 1000) == 0)
         disp([num2str(isim) ' loops... ']);

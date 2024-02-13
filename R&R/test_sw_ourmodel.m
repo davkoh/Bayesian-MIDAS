@@ -61,8 +61,8 @@ valg = 0;
 a0_h = 0; b0_h = 10;
 a0_g = 0; b0_g = 10;
 a0_tau = 0; b0_tau = 10;
-Vomegah = .0001;
-Vomegag = .0001;
+Vomegah = .001;
+Vomegag = .001;
     
 % initialize the Markov chain
 h0 = log(var(y))/5; g0 = log(var(y))/10; tau0 = mean(y);
@@ -150,7 +150,7 @@ h_hat = mean(exp(store_h/2))';
 g_hat = mean(exp(store_g/2))'; 
 
 clf;
-plot(tau_hat)
+plot(tau_hat(1:83))
 hold on
 plot(tau_true)
 

@@ -61,8 +61,8 @@ valg = 0;
 a0_h = 0; b0_h = 10;
 a0_g = 0; b0_g = 10;
 a0_tau = 0; b0_tau = 10;
-Vomegah = .001;
-Vomegag = .001;
+Vomegah = .2;
+Vomegag = .2;
     
 % initialize the Markov chain
 h0 = log(var(y))/5; g0 = log(var(y))/10; tau0 = mean(y);
@@ -91,6 +91,16 @@ store_pomg = zeros(n_grid,1);
 store_lpden = zeros(nsim,3); % log posterior densities of 
                              % omegah = valh; omegag = valg;
                              % omegah = omegag 
+
+nuh=1;
+lambdah=ones(T,1);
+Sigmah=(lambdah.*nuh);
+prior_sv.Vh = 10;
+nug=1;
+lambdag=ones(T,1);
+Sigmag=(lambdag.*nug);
+prior_sv.Vh = 10;
+
                             
 rand('state', sum(100*clock) ); randn('state', sum(200*clock) );    
 for isim = 1:nsim+burnin
@@ -102,18 +112,15 @@ for isim = 1:nsim+burnin
     tau_hat = Ktau\(tau0*HiOgH*ones(T,1) + iOh*y);
     tau = tau_hat + chol(Ktau,'lower')'\randn(T,1);
     
-        % sample h_tilde 
-    ystar = log((y-tau).^2.*lamt.^(-1) + .0001);
-    [h_tilde,h0,omegah,omegah_hat,Domegah,Vomegah] = ...
-    SVRW_gam_hier(ystar,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,0.002,0.002); 
-    h = h0 + omegah*h_tilde;    
+       % Sample h
+    u = y-tau;
+    Ystar = log(u.^2.*lamt.^(-1) + .0001);
+    [h,Sigmah,h0,lambdah,nuh] = sample_sv_unitroot_hs(Ystar,h,Sigmah,h0,lambdah,nuh,prior_sv);
     
         % sample g_tilde
-    ystar = log((tau-[tau0;tau(1:end-1)]).^2 + .0001);
-    [g_tilde g0 omegag omegag_hat Domegag,Vomegag] = ...
-        SVRW_gam_hier(ystar,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,0.002,0.002); 
-    g = g0 + omegag*g_tilde;
-    
+         ystar = log((tau-[tau0;tau(1:end-1)]).^2 + .0001);
+     [g,Sigmag,g0,lambdag,nug] = sample_sv_unitroot_hs(ystar,g,Sigmag,g0,lambdag,nug,prior_sv);
+
         % sample tau0
     Ktau0 = 1/b0_tau + 1/exp(g(1));
     tau0_hat = Ktau0\(a0_tau/b0_tau + tau(1)/exp(g(1)));
@@ -139,13 +146,9 @@ for isim = 1:nsim+burnin
             save_Vomegag(isave) = Vomegag;
 
 
-        lh0 = -.5*log(2*pi*Domegah) - .5*(omegah_hat-valh)^2/Domegah;
-        lg0 = -.5*log(2*pi*Domegag) - .5*(omegag_hat-valg)^2/Domegag;
-        lhg0 = lh0 + lg0;
-        store_lpden(isave,:) = [lh0 lg0 lhg0];
+       
         
-        store_pomh = store_pomh + normpdf(omh_grid,omegah_hat,sqrt(Domegah));
-        store_pomg = store_pomg + normpdf(omg_grid,omegag_hat,sqrt(Domegag));        
+             
     end    
 end
 
@@ -155,12 +158,24 @@ h_hat = mean(exp(store_h/2))';
 g_hat = mean(exp(store_g/2))'; 
 
 clf;
-plot(tau_hat(1:83))
+plot(tau_hat(1:end))
 hold on
-plot(y(1:83))
-plot(1/2*exp(g_hat(1:end)))
+plot(y(1:end))
+plot(1/2*exp(g_hat(1:83)))
 plot(1/2*exp(h_hat(1:83)))
 plot(tau_true)
+
+    clf;
+    plot(tau_hat)
+    hold on
+    plot(quantile(store_tau,0.05))
+    plot(quantile(store_tau,0.95))
+
+        clf;
+    plot(exp(1/2*mean(store_h,1)))
+    hold on
+    plot(exp(1/2*quantile(store_h,0.05)))
+    plot(exp(1/2*quantile(store_h,0.95)))
 
 clf;
 plot(exp(0.5*h_hat))

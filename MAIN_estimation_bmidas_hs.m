@@ -17,7 +17,7 @@ clear all
 rng(1,'twister');  %set seed
 
 %% Define directory and upload data
-cd '/Users/dk/Documents/GitHub/Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
+cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
 
 mkdir 'Output_v2'
 outputfolder = char([cd,'\Outputv2']);  

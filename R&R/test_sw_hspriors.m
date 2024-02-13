@@ -114,6 +114,7 @@ for i = 1:iter
 
     %% Sample t-errors
     [lamt,nut] = sample_t_errors(u,lamt,nut,nub,exp(h));
+    lamt = ones(T,1);
     
 
 if i> burn 

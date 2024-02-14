@@ -37,8 +37,10 @@ data.iOh = eye(T);
 prior_tau.V_t0 = 10;
 prior_tau.H = speye(T) - sparse(2:T,1:(T-1),ones(1,T-1),T,T);
 
-% Sata structure for the h sampler
-prior_sv.Vh = 10;
+% Data structure for the h sampler
+prior_sv_h.Vh = 10;
+% Data structure for the g sampler
+prior_sv_g.Vh = 10;
 
 
 %% Initialise Unknowns
@@ -56,6 +58,13 @@ prior_sv.Vh = 10;
     lambdatau = ones(T,1); % Local shrinkage on trend
     nutau = 1; % Global shrinkage on trend
 
+    g = ones(T,1);
+    g0 = 0;
+    Sigmag = ones(T,1);
+    lambdag  = ones(T,1);
+    nug = 1;
+    a0_tau = 0; b0_tau = 10;
+
     % For Stochastic vol
     h = ones(T,1); % svol
     h0 = log(var(Y)); % initial condition svol
@@ -67,6 +76,8 @@ prior_sv.Vh = 10;
     nub = 50; % upper bound dof
     lamt = ones(T,1); % mixture for t-distribution
     nut = 5; % dof
+
+    H = speye(T) - sparse(2:T,1:(T-1),ones(1,T-1),T,T);
 
 
 %% Storage Matrices
@@ -97,15 +108,29 @@ data.iOh = 1./(exp(h).*lamt).*speye(T);
 [beta,hyper_params,data] = sample_beta(data,hyper_params);
 
 %% Sample Tau
-[tau,Sigmatau,tau0,lambdatau,nutau] = sample_trend_unitroot_hs(Y-X*beta,tau,Sigmatau,tau0,lambdatau,nutau,exp(h).*lamt,prior_tau);
+iOh = sparse(1:T,1:T,1./(exp(h).*lamt));
+HiOgH = H'*sparse(1:T,1:T,1./exp(g))*H;
+Ktau =  HiOgH + iOh;    
+tau_hat = Ktau\(tau0*HiOgH*ones(T,1) + iOh*(Y-tau));
+tau = tau_hat + chol(Ktau,'lower')'\randn(T,1);
+
+%% Sample g
+ystar = log((tau-[tau0;tau(1:end-1)]).^2 + .0001);
+[g,Sigmag,g0,lambdag,nug] = sample_sv_unitroot_hs(ystar,g,Sigmag,g0,lambdag,nug,prior_sv_g);
+
+% Sample initial state:
+    Ktau0 = 1/b0_tau + 1/exp(g(1));
+    tau0_hat = Ktau0\(a0_tau/b0_tau + tau(1)/exp(g(1)));
+    tau0 = tau0_hat + sqrt(Ktau0)'\randn;
 
 %% Sample h
 u = Y-tau-X*beta;
 Ystar = log(u.^2.*lamt.^(-1) + .0001);
-[h,Sigmah,h0,lambdah,nuh] = sample_sv_unitroot_hs(Ystar,h,Sigmah,h0,lambdah,nuh,prior_sv);
+[h,Sigmah,h0,lambdah,nuh] = sample_sv_unitroot_hs(Ystar,h,Sigmah,h0,lambdah,nuh,prior_sv_h);
 
 %% Sample t-errors
 [lamt,nut] = sample_t_errors(u,lamt,nut,nub,exp(h));
+l
 
 %% Save output %% Needs adjustment to what is being saved
 

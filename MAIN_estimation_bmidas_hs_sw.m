@@ -360,7 +360,7 @@ for j = 1:(MCMC)
      % Sample y_{t+1}
 
      if t == 1
-       t_cont = randn;% t_cont = trnd(nuout(j));
+       t_cont = randn; %t_cont = trnd(nuout(j));
      else 
          t_cont = randn;
      end
@@ -443,7 +443,7 @@ else
     modelname5 = '';
 end
 
-modname = strcat('output_hst_swt_wrongtrend','_',num2str(hyperpars(gg,1)),'_',num2str(hyperpars(gg,2)),modelname3,modelname4,modelname5,".mat");
+modname = strcat('output_hs_sw_corrected','_',num2str(hyperpars(gg,1)),'_',num2str(hyperpars(gg,2)),modelname3,modelname4,modelname5,".mat");
 
 save(strcat(outputfolder,'\',modname),"output")
 
@@ -452,8 +452,8 @@ end
 delete(gcp('nocreate'))
 %% Quick Evaluation
 
-rt_rmsfe_overnowcasts = std(rtresid_all(6:end-1,1:end)')'
-rt_crps_overnowcasts = mean(crps_all(6:end-1,1:end),2)
+rt_rmsfe_overnowcasts = std(rtresid_all(6:end-1,1:36)')'
+rt_crps_overnowcasts = mean(crps_all(6:end-1,1:36),2)
 
 %%%%%%%%%%%%  Display results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 format bank

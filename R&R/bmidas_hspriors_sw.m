@@ -86,6 +86,7 @@ gamma_store = zeros(size(unique(input.grp_idx),1),n_samples);
 tausq_store = zeros(n_samples,1);
 tau_store = zeros(T,n_samples);
 store_h = zeros(T,n_samples);
+store_g = zeros(T,n_samples);
 nuy_store =zeros(n_samples,1);
 lambda_store = zeros(T,n_samples);
 
@@ -103,7 +104,7 @@ lambda_store = zeros(T,n_samples);
 %
 for loops = 1:n_burn_in+n_samples
 %% Sample beta
-data.Y = Y;
+data.Y = Y-tau;
 data.iOh = 1./(exp(h).*lamt).*speye(T);
 [beta,hyper_params,data] = sample_beta(data,hyper_params);
 
@@ -111,7 +112,7 @@ data.iOh = 1./(exp(h).*lamt).*speye(T);
 iOh = sparse(1:T,1:T,1./(exp(h).*lamt));
 HiOgH = H'*sparse(1:T,1:T,1./exp(g))*H;
 Ktau =  HiOgH + iOh;    
-tau_hat = Ktau\(tau0*HiOgH*ones(T,1) + iOh*(Y-tau));
+tau_hat = Ktau\(tau0*HiOgH*ones(T,1) + iOh*(Y-X*beta));
 tau = tau_hat + chol(Ktau,'lower')'\randn(T,1);
 
 %% Sample g
@@ -141,12 +142,14 @@ if loops>n_burn_in
     lambda_store(:,loops-n_burn_in) = lamt;
     beta_store(:,loops-n_burn_in) = beta;
     store_h(:,loops-n_burn_in) = h';
+    store_g(:,loops-n_burn_in) = g';
     end
 end
 
 out.beta =beta_store;
 out.tau = tau_store;
 out.h = store_h;
+out.g = store_g;
 out.nu = nuy_store;
 out.lambda = lambda_store;
 out.beta_savs = savs(beta_store',X);

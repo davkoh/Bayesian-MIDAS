@@ -127,8 +127,8 @@ poly = 4; % Polynomial degree for the Almon lag
 
 %% ----------  Estimation and Modeling Choices -------------- %%
 % Sampler Info
-BURNIN = 200; % Burnin for Gibbs sampler
-MCMC = 200; % Number of Monte Carlo iterations saved
+BURNIN = 2000; % Burnin for Gibbs sampler
+MCMC = 2000; % Number of Monte Carlo iterations saved
 endpoint = monthvars; % How many monthly lags are related to the LHS
 
 % BMIDAS Choices
@@ -206,7 +206,7 @@ hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyp
 for gg = 1:size(hyperpars,1) % Loop over all hyperparameters for the GIGG prior
 tic
 %% Loop over time periods
-parfor (tperiod = 1:nfor, cores)
+parfor (tperiod = 1:nfor,cores)
 Xf = (Xm(1:tin+tperiod,:));
 yf = y(tin+tperiod:end,:); 
 T=tin-1+tperiod;

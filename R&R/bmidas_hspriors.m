@@ -92,7 +92,7 @@ lambda_store = zeros(T,n_samples);
 %
 for loops = 1:n_burn_in+n_samples
 %% Sample beta
-data.Y = Y-tau;
+data.Y = Y;
 data.iOh = 1./(exp(h).*lamt).*speye(T);
 [beta,hyper_params,data] = sample_beta(data,hyper_params);
 

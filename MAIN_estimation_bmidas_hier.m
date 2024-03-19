@@ -17,10 +17,10 @@ clear all
 rng(1,'twister');  %set seed
 
 %% Define directory and upload data
-cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
+cd '/Users/dk/Documents/GitHub/Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
 
 %mkdir 'Output'
-%outputfolder = char([cd,'\Output']);  
+outputfolder = char([cd,'\Output']);  
 addpath("Data")
 addpath("Matlab")
 
@@ -348,7 +348,7 @@ end
 
 t_cont = 1;
 sv_cont = 1;
-trend_cont = 0;
+trend_cont = 1;
 
 % Monte Carlo Integration for predictive distribution
 for j = 1:(MCMC)
@@ -443,7 +443,7 @@ else
     modelname5 = '';
 end
 
-modname = strcat('output','_',num2str(hyperpars(gg,1)),'_',num2str(hyperpars(gg,2)),modelname3,modelname4,modelname5,".mat");
+modname = strcat('output_hier','_',num2str(hyperpars(gg,1)),'_',num2str(hyperpars(gg,2)),modelname3,modelname4,modelname5,".mat");
 
 save(strcat(outputfolder,'\',modname),"output")
 
@@ -452,8 +452,8 @@ end
 delete(gcp('nocreate'))
 %% Quick Evaluation
 
-rt_rmsfe_overnowcasts = std(rtresid_all')'
-rt_crps_overnowcasts = mean(crps_all,2)
+rt_rmsfe_overnowcasts = std(rtresid_all(:,1:end)')'
+rt_crps_overnowcasts = mean(crps_all(:,1:end),2)
 
 %%%%%%%%%%%%  Display results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 format bank

@@ -78,12 +78,12 @@ stable_const = 1e-07;
 a0_h = 0; b0_h = 10;
 a0_g = 0; b0_g = 10;
 a0_tau = 0; b0_tau = 10;
-Vomegah = 0.0001;
-Vomegag = 0.0001;
+Vomegah = 1;
+Vomegag = 1;
 nu_ub = 50;  % upper bound for nu
 count_nu = 0;
-V_a = 0.1;
-V_b = 0.1;
+V_a = 1;
+V_b = 1;
 
 % initialize the Markov chain
 h0 = log(var(Y))/5; g0 = log(var(Y))/10; tau0 = mean(Y);
@@ -111,7 +111,7 @@ tausq_store = zeros(n_samples,1);
 sigma_store = zeros(n_samples,1);
 nuy_store =zeros(n_samples,1);
 
-store_theta = zeros(n_samples,5); % [omegah omegag h0 g0 tau0]
+store_theta = zeros(n_samples,7); % [omegah omegag h0 g0 tau0 V_omegah V_omegag]
 store_h = zeros(T,n_samples);
 store_g = zeros(T,n_samples);
 if trend_ind == 1
@@ -144,14 +144,14 @@ end
 
 %% Sample h_tilde
 
-[h,iOh,h0,omegah] = h_samp(Y,tau,X,beta,lam,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,T,sv_ind,V_a,V_b);
+[h,iOh,h0,omegah,V_omegah] = h_samp(Y,tau,X,beta,lam,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,T,sv_ind,V_a,V_b);
 
 
 if sv_ind == 1
 
 %% Sample g_tilde
 
-[g,g0,omegag] = g_samp(tau,tau0,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,V_a,V_b);
+[g,g0,omegag, V_omegag] = g_samp(tau,tau0,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,V_a,V_b);
 
 %% Sample tau0
 Ktau0 = 1/b0_tau + 1/exp(g(1));
@@ -189,7 +189,7 @@ if loops>n_burn_in
     if sv_ind == 1
     store_h(:,loops-n_burn_in) = h'; 
     store_g(:,loops-n_burn_in) = g'; 
-    store_theta(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0]; 
+    store_theta(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0 V_omegah V_omegag]; 
     end
 end
 
@@ -293,7 +293,7 @@ tau_hat = Ktau\(tau0*HiOgH*ones(T,1) + iOh*ystar);
 tau = tau_hat + chol(Ktau,'lower')'\randn(T,1);
 
 %% Sample h
-function [h,iOh,h0,omegah] = h_samp(y,tau,X,beta,lam,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,T,sv_ind,V_a,V_b)
+function [h,iOh,h0,omegah,Vomegah] = h_samp(y,tau,X,beta,lam,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,T,sv_ind,V_a,V_b)
 
 %% Description %%
 % iOh = covariance component due to SV-t in the observation equation
@@ -303,7 +303,7 @@ function [h,iOh,h0,omegah] = h_samp(y,tau,X,beta,lam,h_tilde,h0,omegah,a0_h,b0_h
 
 if sv_ind ==1
 ystar =  log(((y-tau-X*beta)).^2 + .0001); 
-[h_tilde h0 omegah omegah_hat Domegah] = ...
+[h_tilde h0 omegah omegah_hat Domegah Vomegah] = ...
     SVRW_gam_hier(ystar,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,V_a,V_b); 
 h = h0 + omegah*h_tilde;   
 
@@ -314,10 +314,10 @@ end
 iOh = sparse(1:T,1:T,1./(exp(h).*lam));
 
 %% Sample g
-function [g,g0,omegag] = g_samp(tau,tau0,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,V_a,V_b)
+function [g,g0,omegag,Vomegag] = g_samp(tau,tau0,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,V_a,V_b)
 
 ystar = log((tau-[tau0;tau(1:end-1)]).^2 + .0001);
-[g_tilde g0 omegag omegag_hat Domegag] = ...
+[g_tilde g0 omegag omegag_hat Domegag Vomegag] = ...
     SVRW_gam_hier(ystar,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,V_a,V_b); 
 g = g0 + omegag*g_tilde;
 

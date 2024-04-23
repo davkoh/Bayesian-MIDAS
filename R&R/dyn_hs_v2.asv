@@ -64,7 +64,7 @@ sig2_y = 1;
 
 % Sampler Specs
 rng(1,'twister');
-iter = 10000;
+iter = 2000;
 burn = iter/2;
 mcmc = iter-burn;
 
@@ -79,10 +79,11 @@ prior_phi = [10, 2]; % Parameters for Beta prior
 tau_save = NaN(T,mcmc);
 phi_save = NaN(mcmc,1);
 sig2_save = NaN(mcmc,1);
-h_save = NaN(T,mcmc);
-mu_save = NaN(mcmc,1);
+h_save = NaN(mcmc,T);
+mu_save = NaN(mcmc,T);
 
-tic
+
+
 for i = 1:iter
     %% 1: Sample Dynamic Shrinkage Components
         % (a) Sample h_tilde
@@ -118,15 +119,15 @@ for i = 1:iter
         % (c) Sample mu
         Kmu = xi_mu + xi_0 + (1-phi^2)*sum(xi(2:T));
         Cm = chol(Kmu,'lower');
-        mu_hat = Kmu\(( xi_0*h(1) + (1-phi)*sum(xi(2:T).*[h(2:T)-phi*h(1:T-1)])));
+        mu_hat = Kmu\((xi_mu + xi_0*h(1) + (1-phi)*sum(xi(2:T).*[h(2:T)-phi*h(1:T-1)])));
         mu = mu_hat + Cm'\randn(1,1);
         mu_tilde = [mu;(1-phi)*ones(T-1,1)*mu];
 
         % (d) Sample xi_mu
-        xi_mu = 1./pgdraw(mu);
+        xi_mu = pgdraw(mu);
 
         % (e) Sample xi_0 
-        xi_0 = 1./pgdraw(h_tilde(1));
+        xi_0 = pgdraw(h_tilde(1));
 
         % (f) Sample phi (needs slice sampling)
             % define y_ar
@@ -147,6 +148,8 @@ for i = 1:iter
         tau_hat = Ktau\(1/sig2_y*y);
         tau = tau_hat + Ctau'\randn(T,1);
 
+        % (b) tau_0 (not needed)
+
     
 
     %% 3: Sample observation variance
@@ -157,15 +160,10 @@ if i> burn
     isave = i - burn;
     tau_save(:,isave) = tau;
     phi_save(isave) = phi;
-    sig2_save(isave) = sig2_y;
-    h_save(:,isave) = h;
-    mu_save(isave) = mu;
-
     
 end
 
 end
-toc
 
 ptau = mean(tau_save,2);
 clf;

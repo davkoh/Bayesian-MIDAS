@@ -128,7 +128,7 @@ for isim = 1:nsim+burnin
 
         %% Sample t-errors
     [lamt,nut] = sample_t_errors(y-tau,lamt,nut,50,exp(h));
-    lamt = ones(T,1);
+    %lamt = ones(T,1);
             
     if (mod(isim, 1000) == 0)
         disp([num2str(isim) ' loops... ']);

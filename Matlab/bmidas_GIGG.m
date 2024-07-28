@@ -77,9 +77,9 @@ stable_const = 1e-07;
 % Priors
 a0_h = 0; b0_h = 10;
 a0_g = 0; b0_g = 10;
-a0_tau = 0; b0_tau = 10;
+a0_tau = mean(Y); b0_tau = 0.2;
 Vomegah = 0.0001;
-Vomegag = 0.0001;
+Vomegag = 0.1;
 nu_ub = 50;  % upper bound for nu
 count_nu = 0;
 
@@ -220,7 +220,7 @@ function [beta,tau_sq,gamma_sq,lambda_sq,gl_param_expand_diag_inv,nu] = beta_sam
 
 
 if trend_ind == 1
-yhat = Y; 
+yhat = Y-tau; 
 else
     yhat = Y;
 end

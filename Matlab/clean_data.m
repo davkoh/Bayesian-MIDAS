@@ -48,8 +48,8 @@ names_incl_q=names_q(1,1+data_incl_q);
 data_m = data_monthly(2:end,data_incl_m);
 transf = data_monthly(1,data_incl_m);        %transforms for monthly data defined directly in excel
 [T,n] = size(data_m);
-varnames = names_m(1:T+2,[1;data_incl_m+1]);
-d_m = datetime(names_m(4:T+2,1)); % date names
+varnames = names_m(1:T,[1;data_incl_m+1]); % + 2 
+d_m = datetime(names_m(4:T,1)); % date names + 2
 
 data_q = data_quarterly(:,data_incl_q);
 [Tq,n_q] = size(data_q);

@@ -16,7 +16,6 @@ addpath('/Users/dk/Library/CloudStorage/OneDrive-Heriot-WattUniversity/Education
 %addpath('N:\CECD\10. Personal\David Kohns\Code\Application\Macro Application\Results\Updated Sample')
 % Load Data
 load('UKdata_11_11_1980_2021_GDPCONINVHOUR_sur_act_lab_mort_ie_vis.mat');
-addpath '/Users/dk/Library/CloudStorage/OneDrive-Heriot-WattUniversity/Education/BoE Nowcasting Project 2022/Scripts from PC/Downloads/GIGG-Nowcast-Output'
 addpath '/Users/dk/Documents/GitHub/Bayesian-MIDAS/Output'
 
 

@@ -80,8 +80,8 @@ a0_g = 0; b0_g = 10;
 a0_tau = mean(Y); b0_tau = 0.2; % This is new! 
 Vomegah = 0.0001;
 Vomegag = 0.0001;
-Vh0 = 0.0001;
-Vg0 = 0.0001;
+Vh0 = 0.1;
+Vg0 = 0.1;
 count_nu = 0;
 alpha_nu = 2;
 beta_nu = 1;
@@ -131,7 +131,7 @@ end
 %
 for loops = 1:n_burn_in+n_samples
 %% Draw beta
-[beta,tau_sq,gamma_sq,lambda_sq,gl_param_expand_diag_inv,nu] = beta_samp2(Y,tau,X,tX,iOh,tau_sq,gamma_sq,lambda_sq, ...
+[beta,tau_sq,gamma_sq,lambda_sq,gl_param_expand_diag_inv,nu,a] = beta_samp2(Y,tau,X,tX,iOh,tau_sq,gamma_sq,lambda_sq, ...
     gl_param_expand_diag_inv,K,tau_shape_const,stable_const,nu,G, ...
     grp_size_cs,grp_size,grp_idx,a,b, ...
     trend_ind,sv_ind,t_ind);
@@ -162,7 +162,7 @@ tau0_hat = Ktau0\(a0_tau/b0_tau + tau(1)/exp(g(1)));
 tau0 = tau0_hat + sqrt(Ktau0)'\randn;
 
 % Hierarchical prior on the starting value too
-%b0_tau = sample_V2_slice(b0_tau,Ktau0,0,0,10,60);
+b0_tau = sample_V2_slice(b0_tau,Ktau0,0,0,10,6); % commenting this out seems to have worked well enough.
 
 end
 
@@ -221,7 +221,7 @@ end
 %% ============== Sampling Functions ============== %% 
 
 %% Sample Beta
-function [beta,tau_sq,gamma_sq,lambda_sq,gl_param_expand_diag_inv,nu] = beta_samp2(Y,tau,X,tX,iOh,tau_sq,gamma_sq,lambda_sq, ...
+function [beta,tau_sq,gamma_sq,lambda_sq,gl_param_expand_diag_inv,nu,a] = beta_samp2(Y,tau,X,tX,iOh,tau_sq,gamma_sq,lambda_sq, ...
     gl_param_expand_diag_inv,K,tau_shape_const,stable_const,nu,G, ...
     grp_size_cs,grp_size,grp_idx,a,b, ...
     trend_ind,sv_ind,t_ind)

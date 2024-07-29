@@ -40,9 +40,9 @@ function [h_tilde,h0,omegah,omegah_hat,Domegah,Vomegah,Vh0] = ...
     omegah = U*omegah;
 
         % Sample from the posterior of Vomegah
-    Vomegah = sample_V2_slice(Vomegah,omegah,0,0,10,6);
+    Vomegah = sample_V2_slice(Vomegah,omegah,0,0,0.5,6);
         % Sample from the posterior of Vomegah
-%    Vh0 = sample_V2_slice(Vh0,h0,0,0,10,6);
+    Vh0 = sample_V2_slice(Vh0,h0,0,0,0.5,6);
 
         % compute the mean and variance of the
         %    conditional density of omegah    

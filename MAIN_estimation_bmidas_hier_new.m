@@ -17,187 +17,15 @@ clear all
 rng(1,'twister');  %set seed
 
 %% Define directory and upload data
-cd 'D:\Github\Bayesian-MIDAS'   %%%%% Specify output directory (replace the current string) %%%%%%%
+cd '/Users/dk/Documents/GitHub/Bayesian-MIDAS-RR'   %%%%% Specify output directory (replace the current string) %%%%%%%
 
-mkdir 'Output'
+%mkdir 'Output'
 outputfolder = char([cd,'\Output']);  
 addpath("Data")
 addpath("Matlab")
+addpath("R&R")
 
-%%%%%%%%%%%%%   Load data   %%%%%%%%%%%%%%%
-[data_quarterly, names_q]= xlsread('MF_DFM_FAMEdata_2024.xlsx','QuarterlyData','A4:e500');
-[data_monthly, names_m]= xlsread('MF_DFM_FAMEdata_2024.xlsx','MonthlyData','A4:aq2000');
-%%% important: 
-%  - excel sheet should be read with variable names 
-%  - first data row for data_monthly are transformation indices (will be used in clean_data.m, line 27)
-
-%% ---------- Set Data Choices ---------- %%
-
-%%%%%%%%%%%  Select Sample Period  %%%%%%%%%%%%%%%%%%
-beg_s = '30-Jun-1997';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
-end_s = '30-Jun-2023';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
-
-beg_eval_per = '31-Mar-2007';  % specify quarter in which to begin evaluation period "last day - last month of quarter (MMM) - year" 
-                               % full evaluation can be shut off below via "eval_full==0"
-      
-%%%%%%%%%%%  select groups of monthly series to include (individual series in each group see below)
-sur = 1;     % survey data
-act = 1;     % activity and trade data
-lab = 1;     % labour market series
-pr  = 0;     % prices 
-mon = 0;     % money and interest rates
-mort = 1;     % mortgages
-fin = 0;     % financial indices
-ie  = 0;     % inflation expectations
-vis = 1;     % VISA consumer spending
-                   
-%%%%%%%%%%% define data transformations
-dyoy     = 0;    % 1- y-o-y growth rates/changes , 0- m-o-m or q-o-q changes
-stand    = 0;    % 1- standardise all series, 0- standardise only series in levels
-
-%%%%%%%%%%%  Select Variables  %%%%%%%%%%%%%%%%%%%%%%
-%%% define selected monthly series - use name as in first row of names_m!
-%   (exclude individual series by copying them out of the brakets and spearating by through three dots)
-Var  = {};
-Varq = {'GDP_Q'};  ...;'CONS';'HOURS';'INV';
-Vars = {'CBI_ES';'CBI_S';'CBI_EO';'PMI_M';'PMI_S';'PMI_C';'GfK'};        % surveys: CBIs,PMIs, GfK
-Vara = {'IoP';'IoS';'Exp';'Imp'};                                        % IoP,IoS,Exports,Imports
-Varl = {'UR';'EMP';'Vacancies';'Hours'}; ...'AWE';'Claimant'             % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
-Varp = {'CPI';'CoreCPI';'RPI';'RPIX';'PPIout';'PPIin';'HPr';'Oil'};      % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil
-Varm = {'Money';'BaseRate';'LIBOR';'EXR'};                               % Money: M4,Base rate,LIBOR,Exrate
-Varmt = {'Mortgage'};                                                    % Mortgages
-Varf = {'FTSE';'FTSE250';'FTSEUK';'SP500';'EuroStoxx';'VIX';'UKVIX'};    % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
-Vari = {'InflExp5y';'City1y';'City5y'};                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
-Varv = {'VISA'};                                                         % VISA consumer spending
-
-%% ---------- Nowcast evaluation choices ------------------- %%
-% Nowcast calendar choice
-pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
-                     % 0 = estimation based on latest available data at time of estimation, 
-                     
-% Choice of out-of sample evaluation               
-eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
-                     % 0 - only evaluate over LATEST quarter in the sample      
-
-%% ---------- Stylised Calendar Choices  - if pseudo data release calendar chosen above  ---------- %%
-%%% Define publication delays within quarter for the stylised calendar (same structure as for defining the variable names)
-% Each variable (same order as defined above) is assigned a publication delay according to the latest month it is available for at the end of a quarter.
-% I.e., if variable is available up until June at the end of Q2 it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2, March=0, Feb=-1,Jan=-2). 
-% Delays should not be lower than amount of months analysed for a nowcast cycles (otherwise no data available).
-Var_delay  = [];
-Varq_delay = [-2];  
-Vars_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK
-Vara_delay = [-2;-2;-2;-2];                                               % IoP,IoS,Exports,Imports
-Varl_delay = [-2;-2;-2;-2];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count,
-Varp_delay = [];                                                          % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil                                            
-Varm_delay = [];                                                          % Money: M4,Base rate,LIBOR,Exrate
-Varmt_delay = [-1];                                                       % Mortgages
-Varf_delay = [];                                                          % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
-Vari_delay = [-1;-1;-1];                                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
-Varv_delay = [-1];                                                        % VISA consumer spending
-
-%%% Define Publication release order for stylised calendar month
-% numbering identifies order of publication in an idealised month, same number specified if variables are released on the same release day
-Var_pubgroup = [];
-Varq_pubgroup = [2];
-Vars_pubgroup = [6;6;6;1;1;1;6];                                         % surveys: CBIs,PMIs, GfK
-Vara_pubgroup = [3;3;3;3];                                               % IoP,IoS,Exports,Imports
-Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
-Varp_pubgroup = [];                                                      % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil
-Varm_pubgroup = [];                                                      % Money: M4,Base rate,LIBOR,Exrate
-Varmt_pubgroup = [5];                                                    % Mortgages
-Varf_pubgroup = [];                                                      % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
-Vari_pubgroup = [];                                                      % Infl expect: 5yr market-based, Citi 1y, City5-10y
-Varv_pubgroup = [5];                                                     % VISA consumer spending          
-
-clearvars input % Ignore this
-
-input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
-input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
-
-
-%% ---------- Mixed Frequency Estimation Choices ---------- %%
-% mixed-frequency lag structure
-mismatch = 3; % frequency mismatch between LHS and RHS (3 for quarterly vs monthly)
-monthvars = 6; % amount of months related to LHS quarterly variable (multiples of mismatch, max 12)
-almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
-poly = 4; % Polynomial degree for the Almon lag
-
-
-%% ----------  Estimation and Modeling Choices -------------- %%
-% Sampler Info
-BURNIN = 5000; % Burnin for Gibbs sampler
-MCMC = 5000; % Number of Monte Carlo iterations saved
-endpoint = monthvars; % How many monthly lags are related to the LHS
-
-% BMIDAS Choices
-trend = 1; % 1 = include trend, 0 = don't include trend
-SV = 1; % 1 = include SV, 0 = don't include SV
-t = 1; % 1 = include t-errors, 0 = normal errors
-
-% Group-sparsification step                    
-group_sparse = 1; % 1 = apply group-sparsity, 
-            % 0 = don't apply group-sparsification step
-
-% Parallelisation
-cores = 10; % Number of threads for parallelising the nowcast loops (if too high, will default max workers specified by matlab copy)
-
-
-
-%%
-%%%%%%%%%%% ============================================== %%%%%%%%%%%            
-%%%%%%%%%%% ============ AUTOMATIC PART ================== %%%%%%%%%%%
-%%%%%%%%%%% ============================================== %%%%%%%%%%%     
-
-%%%%%%%% Does the data cleaning 
-clean_data    %%%% transform and plot data, and prepare data for estimation  
-
-%%%%%%% Building pseudo publication Calendar 
-%  "input" structure which contains the relevant information in order to construct a pseudo real-time calendar as in the
-% paper. Please note, that in the calendar generation code below, it is assumed that the final data publication refers to the quarterly variable coming out.
-
-input.K = size(y_m,2); % number of higher frequency indicators
-input.mismatch = mismatch; % mismatch in sampling frequency
-input.mlags = monthvars; % number of months used for nowcasting
-input.pubdelay = Var_delay; % vector of publication delays of dimension equal to number of higher frequency indicators.
-input.pubseq = Var_pubgroup; % vector of groupings that define which variables come out in which order.
-[puball groupall] = calendar_gen(input);
-                       
-%%%% Nowcast calendar definitions: End date Date, Start date and number of forecast periods choice
-dqend = d_q(end-1);
-dqstart = d_q(1);
-mstart = eomdate( dqstart - calmonths(monthvars-1)); % Adjust Monthly series for lags
-mend = dqend;
-if eval_full ==1
-     nfor = size(d_q,1)-find(d_q==beg_eval_per); % Number of nowcast quarters: can be altered by changing the date
-else
-    nfor =1 ; %% only evaluation for latest quarter
-end
-tin = size(d_q,1)-1-nfor; % Initial in-sample period 
-
-%% Data Helper (Brings y_m into MIDAS) 
-vint = size(puball,1); % number of nowcast periods
-missingvalues_mixedfrequency_2 % adjusts the data to starting dates and U-MIDAS sampling
-
-if pseudo_cal ==0
-    vint = 1;
-    pub_m = avail_ind;
-    puball = avail_ind;
-end
-
-%%%%%%%%%%%%%%% OUTPUT  Storage
-
-G = size(unique(groupall),2);
-
-% Output Matrices
-crps_all = zeros(vint,nfor); % Storage for CRPS values
-y_pred_all = zeros(MCMC,vint,nfor); % stores predictive distributions for each nowcast
-rtresid_all = zeros(vint,nfor); % stores residuals for each nowcast, based on mean predictive
-rtlogscores_all = zeros(vint,nfor); % stores log-scores for each nowcast
-yf_all =zeros(nfor,1); % Saves the out-of-sample LHS variable for each quarter
-dq_nfor = []; % saves dates of quarters to be nowcasted
-pincl = zeros(vint,max(unique(groupall)),nfor);
-modall = zeros(vint,MCMC,nfor);
+load("Data/UK_dat_2024.mat")
 
 ortho_choice = 1; % group-orthononormalisation, needed for validity of the group-sparsification solution, don't change!
 hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyperpriors for the GIGG prior
@@ -205,7 +33,7 @@ hyperpars = [1/tin,1/tin;1/tin,0.5;1/tin,1;1,1/tin;0.5,1/tin;1,1;0.5,0.5]; % Hyp
 for gg = 1:size(hyperpars,1) % Loop over all hyperparameters for the GIGG prior
 tic
 %% Loop over time periods
-parfor (tperiod = 40:nfor, cores)
+parfor (tperiod = 1:nfor, cores)
 Xf = (Xm(1:tin+tperiod,:));
 yf = y(tin+tperiod:end,:); 
 T=tin-1+tperiod;
@@ -452,7 +280,7 @@ end
 delete(gcp('nocreate'))
 %% Quick Evaluation
 
-rt_rmsfe_overnowcasts = std(rtresid_all(:,1:end)')'
+rt_rmsfe_overnowcasts = std(rtresid_all(:,1:51)')'
 rt_rmsfe_overnowcasts = std(output.resid_all(:,1:51)')'
 rt_crps_overnowcasts = mean(crps_all,2)
 

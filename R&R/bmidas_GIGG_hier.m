@@ -162,7 +162,7 @@ tau0_hat = Ktau0\(a0_tau/b0_tau + tau(1)/exp(g(1)));
 tau0 = tau0_hat + sqrt(Ktau0)'\randn;
 
 % Hierarchical prior on the starting value too
-b0_tau = sample_V2_slice(b0_tau,Ktau0,0,0,10,6); % commenting this out seems to have worked well enough.
+b0_tau = sample_V2_slice(b0_tau,Ktau0,0,0,1,6); % commenting this out seems to have worked well enough.
 
 end
 
@@ -228,7 +228,7 @@ function [beta,tau_sq,gamma_sq,lambda_sq,gl_param_expand_diag_inv,nu,a] = beta_s
 
 
 if trend_ind == 1
-yhat = Y; 
+yhat = Y-tau; 
 else
     yhat = Y;
 end
@@ -299,7 +299,14 @@ ystar = y-X*beta;
 HiOgH = H'*sparse(1:T,1:T,1./exp(g))*H;
 Ktau =  HiOgH + iOh;    
 tau_hat = Ktau\(tau0*HiOgH*ones(T,1) + iOh*ystar);
-tau = tau_hat + chol(Ktau,'lower')'\randn(T,1);
+try
+        Ctau = chol(Ktau,'lower');
+    catch
+        Ctau = chol(nearestSPD(full(Ktau)),'lower'); %SVD does not support sparse matrix so convert Kbeta to normal first
+        Ctau = sparse(Ctau); %Convert back to sparse matrix
+    end
+
+tau = tau_hat + Ctau'\randn(T,1);
 
 %% Sample h
 function [h,iOh,h0,omegah,Vomegah,Vh0] = h_samp(y,tau,X,beta,lam,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,Vh0,T,sv_ind)
@@ -315,6 +322,8 @@ if sv_ind ==1
 ystar =  log(((y-tau-X*beta)).^2./lam + .0001); 
 [h_tilde h0 omegah omegah_hat Domegah,Vomegah,Vh0] = ...
     SVRW_hier_pc(ystar,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,Vh0); 
+%[h_tilde h0 omegah omegah_hat Domegah,Vomegah,Vh0] = ...
+%    SVRW_pc_omori(ystar,h_tilde,h0,omegah,a0_h,b0_h,Vomegah,Vh0); 
 h = h0 + omegah*h_tilde;   
 
 
@@ -330,6 +339,8 @@ function [g,g0,omegag,Vomegag,Vg0] = g_samp(tau,tau0,g_tilde,g0,omegag,a0_g,b0_g
 ystar = log((tau-[tau0;tau(1:end-1)]).^2 + .0001);
 [g_tilde g0 omegag omegag_hat Domegag,Vomegag,Vg0] = ...
     SVRW_hier_pc(ystar,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,Vg0); 
+%[g_tilde g0 omegag omegag_hat Domegag,Vomegag,Vg0] = ...
+%    SVRW_pc_omori(ystar,g_tilde,g0,omegag,a0_g,b0_g,Vomegag,Vg0); 
 g = g0 + omegag*g_tilde;
 
 

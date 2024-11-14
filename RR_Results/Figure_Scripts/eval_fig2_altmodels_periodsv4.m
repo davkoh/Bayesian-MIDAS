@@ -182,7 +182,7 @@ ylim([0 10])
 xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 h=get(fig1,'CurrentAxes')
 set(h, 'FontSize', 12) 
-title('Covid','FontSize',16)
+title('Pandemic','FontSize',16)
 
 
 subplot(2,3,4);

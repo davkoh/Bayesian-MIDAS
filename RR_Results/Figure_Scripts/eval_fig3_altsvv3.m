@@ -147,25 +147,7 @@ rtcrps_post_mod7= mean(mod7.crps_all(:,1:end),2);
 
 fig1 = figure;
 
- subplot(2,4,1);
-plot(rmsfe_post_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
-hold on
-plot(rmsfe_post_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rmsfe_post_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
-plot(rmsfe_post_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
-plot(rmsfe_post_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
-plot(rmsfe_post_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rmsfe_post_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
-xticks([1,3,5,7,9,11,13,15,17,19])
-ylim([0 4.5])
-xlim([0 20])
-h=get(fig1,'CurrentAxes')
-ylabel('RMSFE','FontSize',16)
-set(h, 'FontSize', 12) 
-xticklabels({'135','120','110','95','85','75','60','50','35','15'})
-title('Full Sample','FontSize',16)
-
-subplot(2,4,2);
+subplot(2,3,1);
 plot(rmsfe_gfc_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_gfc_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
@@ -175,7 +157,7 @@ plot(rmsfe_gfc_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineS
 plot(rmsfe_gfc_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
 plot(rmsfe_gfc_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19])
-ylim([0 4.5])
+ylim([0 1.5])
 xlim([0 20])
 h=get(fig1,'CurrentAxes')
 set(h, 'FontSize', 12) 
@@ -183,7 +165,7 @@ xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 title('GFC','FontSize',16)
 
 
-subplot(2,4,3);
+subplot(2,3,2);
 plot(rmsfe_tranq_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_tranq_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
@@ -193,14 +175,14 @@ plot(rmsfe_tranq_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",Lin
 plot(rmsfe_tranq_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
 plot(rmsfe_tranq_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19])
-ylim([0 4.5])
+ylim([0 1.5])
 xlim([0 20])
 h=get(fig1,'CurrentAxes')
 set(h, 'FontSize', 12) 
 xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 title('Tranquil','FontSize',16)
 
-subplot(2,4,4);
+subplot(2,3,3);
 plot(rmsfe_pandemic_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_pandemic_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
@@ -218,24 +200,7 @@ set(h, 'FontSize', 12)
 xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 title('Pandemic','FontSize',16)
 
-subplot(2,4,5);
-plot(rtcrps_post_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
-hold on
-plot(rtcrps_post_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rtcrps_post_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
-plot(rtcrps_post_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
-plot(rtcrps_post_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
-plot(rtcrps_post_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rtcrps_post_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
-xticks([1,3,5,7,9,11,13,15,17,19]) 
-ylim([0 2])
-xlim([0 20])
-xticklabels({'135','120','110','95','85','75','60','50','35','15'})
-h=get(fig1,'CurrentAxes')
-set(h, 'FontSize', 12) 
-ylabel('CRPS','FontSize',16)
-
-subplot(2,4,6);
+subplot(2,3,4);
 plot(rtcrps_gfc_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_gfc_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
@@ -251,7 +216,7 @@ xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 h=get(fig1,'CurrentAxes')
 set(h, 'FontSize', 12) 
 
-subplot(2,4,7);
+subplot(2,3,5);
 plot(rtcrps_tranq_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_tranq_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
@@ -267,7 +232,7 @@ xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 h=get(fig1,'CurrentAxes')
 set(h, 'FontSize', 12)
 
-subplot(2,4,8);
+subplot(2,3,6);
 plot(rtcrps_pandemic_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_pandemic_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
@@ -277,7 +242,7 @@ plot(rtcrps_pandmic_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",
 plot(rtcrps_pandemic_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
 plot(rtcrps_pandemic_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19]) 
-ylim([0 6])
+ylim([0 5])
 xlim([0 20])
 xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 h=get(fig1,'CurrentAxes')

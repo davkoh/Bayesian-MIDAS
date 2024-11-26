@@ -73,19 +73,19 @@ xData_post = datenum(dq(end-12:end))';
 hAx(2) = subplot(3,2,2);
 plot(xData_post,Cyclical(1).loc(end-12:end),'LineWidth',1.5,Color="#8F968B",LineStyle="-")
 hold on
-plot(xData_post,Cyclical(1).Cyclical_lower(end-12:end),'LineWidth',1,Color="#8F968B",LineStyle=":")
-plot(xData_post,Cyclical(1).Cyclical_upper(end-12:end),'LineWidth',1,Color="#8F968B",LineStyle=":")
+plot(xData_post,Cyclical(1).Cyclical_lower(end-12:end),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
+plot(xData_post,Cyclical(1).Cyclical_upper(end-12:end),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
 
 plot(xData_post,Cyclical(2).loc(end-12:end),'LineWidth',1.5,Color="#3EA772",LineStyle="-")
-plot(xData_post,Cyclical(2).Cyclical_lower(end-12:end),'LineWidth',1,Color="#3EA772",LineStyle=":")
-plot(xData_post,Cyclical(2).Cyclical_upper(end-12:end),'LineWidth',1,Color="#3EA772",LineStyle=":")
+plot(xData_post,Cyclical(2).Cyclical_lower(end-12:end),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
+plot(xData_post,Cyclical(2).Cyclical_upper(end-12:end),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
 
 
 plot(xData_post,y(end-12:end,:),'LineWidth',1,'Color','blue','LineStyle','-')
 
 plot(xData_post,Cyclical(3).loc(end-12:end),'LineWidth',1.5,Color="#000000",LineStyle="-")
-plot(xData_post,Cyclical(3).Cyclical_lower(end-12:end),'LineWidth',1,Color="#000000",LineStyle=":")
-plot(xData_post,Cyclical(3).Cyclical_upper(end-12:end),'LineWidth',1,Color="#000000",LineStyle=":")
+plot(xData_post,Cyclical(3).Cyclical_lower(end-12:end),'LineWidth',1.5,Color="#000000",LineStyle=":")
+plot(xData_post,Cyclical(3).Cyclical_upper(end-12:end),'LineWidth',1.5,Color="#000000",LineStyle=":")
 
 datetick('x','QQ-YY','keepticks')
 xlim([startdate_post enddate_post]);
@@ -100,17 +100,17 @@ hAx(3) = subplot(3,2,3);
 
 plot(xData_pre,trend(1).loc(1:end-13),'LineWidth',1.5,Color="#8F968B",LineStyle="-")
 hold on
-plot(xData_pre,trend(1).trend_lower(1:end-13),'LineWidth',1,Color="#8F968B",LineStyle=":")
-plot(xData_pre,trend(1).trend_upper(1:end-13),'LineWidth',1,Color="#8F968B",LineStyle=":")
+plot(xData_pre,trend(1).trend_lower(1:end-13),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
+plot(xData_pre,trend(1).trend_upper(1:end-13),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
 
 plot(xData_pre,trend(2).loc(1:end-13),'LineWidth',1.5,Color="#3EA772",LineStyle="-")
-plot(xData_pre,trend(2).trend_lower(1:end-13),'LineWidth',1,Color="#3EA772",LineStyle=":")
-plot(xData_pre,trend(2).trend_upper(1:end-13),'LineWidth',1,Color="#3EA772",LineStyle=":")
+plot(xData_pre,trend(2).trend_lower(1:end-13),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
+plot(xData_pre,trend(2).trend_upper(1:end-13),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
 
 
 plot(xData_pre,trend(3).loc(1:end-13),'LineWidth',1.5,Color="#000000",LineStyle="-")
-plot(xData_pre,trend(3).trend_lower(1:end-13),'LineWidth',1,Color="#000000",LineStyle=":")
-plot(xData_pre,trend(3).trend_upper(1:end-13),'LineWidth',1,Color="#000000",LineStyle=":")
+plot(xData_pre,trend(3).trend_lower(1:end-13),'LineWidth',1.5,Color="#000000",LineStyle=":")
+plot(xData_pre,trend(3).trend_upper(1:end-13),'LineWidth',1.5,Color="#000000",LineStyle=":")
 
 datetick('x','QQ-YY','keepticks')
 %ylim([-1 2])
@@ -127,17 +127,17 @@ hAx(4) = subplot(3,2,4);
 
 plot(xData_post,trend(1).loc(end-12:end),'LineWidth',1.5,Color="#8F968B",LineStyle="-")
 hold on
-plot(xData_post,trend(1).trend_lower(end-12:end),'LineWidth',1,Color="#8F968B",LineStyle=":")
-plot(xData_post,trend(1).trend_upper(end-12:end),'LineWidth',1,Color="#8F968B",LineStyle=":")
+plot(xData_post,trend(1).trend_lower(end-12:end),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
+plot(xData_post,trend(1).trend_upper(end-12:end),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
 
 plot(xData_post,trend(2).loc(end-12:end),'LineWidth',1.5,Color="#3EA772",LineStyle="-")
-plot(xData_post,trend(2).trend_lower(end-12:end),'LineWidth',1,Color="#3EA772",LineStyle=":")
-plot(xData_post,trend(2).trend_upper(end-12:end),'LineWidth',1,Color="#3EA772",LineStyle=":")
+plot(xData_post,trend(2).trend_lower(end-12:end),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
+plot(xData_post,trend(2).trend_upper(end-12:end),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
 
 
 plot(xData_post,trend(3).loc(end-12:end),'LineWidth',1.5,Color="#000000",LineStyle="-")
-plot(xData_post,trend(3).trend_lower(end-12:end),'LineWidth',1,Color="#000000",LineStyle=":")
-plot(xData_post,trend(3).trend_upper(end-12:end),'LineWidth',1,Color="#000000",LineStyle=":")
+plot(xData_post,trend(3).trend_lower(end-12:end),'LineWidth',1.5,Color="#000000",LineStyle=":")
+plot(xData_post,trend(3).trend_upper(end-12:end),'LineWidth',1.5,Color="#000000",LineStyle=":")
 
 
 datetick('x','QQ-YY','keepticks')
@@ -154,17 +154,17 @@ hAx(5) = subplot(3,2,5);
 
 plot(datenum(dq)',SV(1).loc,'LineWidth',1.5,Color="#8F968B",LineStyle="-")
 hold on
-plot(datenum(dq)',SV(1).SV_lower,'LineWidth',1,Color="#8F968B",LineStyle=":")
-plot(datenum(dq)',SV(1).SV_upper,'LineWidth',1,Color="#8F968B",LineStyle=":")
+plot(datenum(dq)',SV(1).SV_lower,'LineWidth',1.5,Color="#8F968B",LineStyle=":")
+plot(datenum(dq)',SV(1).SV_upper,'LineWidth',1.5,Color="#8F968B",LineStyle=":")
 
 plot(datenum(dq)',SV(2).loc,'LineWidth',1.5,Color="#3EA772",LineStyle="-")
-plot(datenum(dq)',SV(2).SV_lower,'LineWidth',1,Color="#3EA772",LineStyle=":")
-plot(datenum(dq)',SV(2).SV_upper,'LineWidth',1,Color="#3EA772",LineStyle=":")
+plot(datenum(dq)',SV(2).SV_lower,'LineWidth',1.5,Color="#3EA772",LineStyle=":")
+plot(datenum(dq)',SV(2).SV_upper,'LineWidth',1.5,Color="#3EA772",LineStyle=":")
 
 
 plot(datenum(dq)',SV(3).loc,'LineWidth',1.5,Color="#000000",LineStyle="-")
-plot(datenum(dq)',SV(3).SV_lower,'LineWidth',1,Color="#000000",LineStyle=":")
-plot(datenum(dq)',SV(3).SV_upper,'LineWidth',1,Color="#000000",LineStyle=":")
+plot(datenum(dq)',SV(3).SV_lower,'LineWidth',1.5,Color="#000000",LineStyle=":")
+plot(datenum(dq)',SV(3).SV_upper,'LineWidth',1.5,Color="#000000",LineStyle=":")
 
 datetick('x','QQ-YY','keepticks')
 xlim([startdate enddate_post]);
@@ -180,17 +180,17 @@ set(hAx(5),'XTickLabelRotation',45)
 hAx(6) = subplot(3,2,6);
 plot(datenum(dq)',SV_Trend(1).loc,'LineWidth',1.5,Color="#8F968B",LineStyle="-")
 hold on
-plot(datenum(dq)',SV_Trend(1).trend_lower,'LineWidth',1,Color="#8F968B",LineStyle=":")
-plot(datenum(dq)',SV_Trend(1).trend_upper,'LineWidth',1,Color="#8F968B",LineStyle=":")
+plot(datenum(dq)',SV_Trend(1).trend_lower,'LineWidth',1.5,Color="#8F968B",LineStyle=":")
+plot(datenum(dq)',SV_Trend(1).trend_upper,'LineWidth',1.5,Color="#8F968B",LineStyle=":")
 
 plot(datenum(dq)',SV_Trend(2).loc,'LineWidth',1.5,Color="#3EA772",LineStyle="-")
-plot(datenum(dq)',SV_Trend(2).trend_lower,'LineWidth',1,Color="#3EA772",LineStyle=":")
-plot(datenum(dq)',SV_Trend(2).trend_upper,'LineWidth',1,Color="#3EA772",LineStyle=":")
+plot(datenum(dq)',SV_Trend(2).trend_lower,'LineWidth',1.5,Color="#3EA772",LineStyle=":")
+plot(datenum(dq)',SV_Trend(2).trend_upper,'LineWidth',1.5,Color="#3EA772",LineStyle=":")
 
 
 plot(datenum(dq)',SV_Trend(3).loc,'LineWidth',1.5,Color="#000000",LineStyle="-")
-plot(datenum(dq)',SV_Trend(3).trend_lower,'LineWidth',1,Color="#000000",LineStyle=":")
-plot(datenum(dq)',SV_Trend(3).trend_upper,'LineWidth',1,Color="#000000",LineStyle=":")
+plot(datenum(dq)',SV_Trend(3).trend_lower,'LineWidth',1.5,Color="#000000",LineStyle=":")
+plot(datenum(dq)',SV_Trend(3).trend_upper,'LineWidth',1.5,Color="#000000",LineStyle=":")
 
 datetick('x','QQ-YY','keepticks')
 xlim([startdate enddate_post]);
@@ -206,24 +206,24 @@ hAx(1) = subplot(3,2,1);
 
 plot(xData_pre,Cyclical(1).loc(1:end-13),'LineWidth',1.5,Color="#8F968B",LineStyle="-")
 hold on
-plot(xData_pre,Cyclical(1).Cyclical_lower(1:end-13),'LineWidth',1,Color="#8F968B",LineStyle=":")
-plot(xData_pre,Cyclical(1).Cyclical_upper(1:end-13),'LineWidth',1,Color="#8F968B",LineStyle=":")
+plot(xData_pre,Cyclical(1).Cyclical_lower(1:end-13),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
+plot(xData_pre,Cyclical(1).Cyclical_upper(1:end-13),'LineWidth',1.5,Color="#8F968B",LineStyle=":")
 
 plot(xData_pre,Cyclical(2).loc(1:end-13),'LineWidth',1.5,Color="#3EA772",LineStyle="-")
-plot(xData_pre,Cyclical(2).Cyclical_lower(1:end-13),'LineWidth',1,Color="#3EA772",LineStyle=":")
-plot(xData_pre,Cyclical(2).Cyclical_upper(1:end-13),'LineWidth',1,Color="#3EA772",LineStyle=":")
+plot(xData_pre,Cyclical(2).Cyclical_lower(1:end-13),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
+plot(xData_pre,Cyclical(2).Cyclical_upper(1:end-13),'LineWidth',1.5,Color="#3EA772",LineStyle=":")
 
 plot(xData_pre,Cyclical(3).loc(1:end-13),'LineWidth',1.5,Color="#000000",LineStyle="-")
-plot(xData_pre,Cyclical(3).Cyclical_lower(1:end-13),'LineWidth',1,Color="#000000",LineStyle=":")
-plot(xData_pre,Cyclical(3).Cyclical_upper(1:end-13),'LineWidth',1,Color="#000000",LineStyle=":")
+plot(xData_pre,Cyclical(3).Cyclical_lower(1:end-13),'LineWidth',1.5,Color="#000000",LineStyle=":")
+plot(xData_pre,Cyclical(3).Cyclical_upper(1:end-13),'LineWidth',1.5,Color="#000000",LineStyle=":")
 
 
 plot(xData_pre,y(1:end-13,:),'LineWidth',1,'Color','blue','LineStyle','-')
 
 datetick('x','QQ-YY','keepticks')
 xlim([startdate enddate_pre]);
-xticks(xData_pre(3:6:end))
-xticklabels(datestr(xData_pre(3:6:end),'QQ-YY'))
+xticks(xData_pre(4:8:end))
+xticklabels(datestr(xData_pre(4:8:end),'QQ-YY'))
 title('Cycle: Pre-Pandemic',FontSize=16)
 h=get(fig1,'CurrentAxes')
 set(h,'FontSize',15)

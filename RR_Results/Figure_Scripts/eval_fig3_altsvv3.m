@@ -37,20 +37,21 @@ mod4 = mod4.output;
 mod4.resid_all([1:5 12 end],:) = [];
 mod4.crps_all([1:5 12 end],:) = [];
 
-% Trend-const. var 
-mod5 = load('Output_iterated/results_iteratednowcasts_newgigg_oldsv_bg_0.5_trend_almon_ortho_groupsparse.mat');
+% Trend (PC) PRIOR MODEL
+mod5 = load('Output_iterated/results_iteratednowcasts_gigg_newsvTrend_bg_0.5_sv_almon_ortho_groupsparse.mat');
 mod5 = mod5.output;
 mod5.resid_all([1:5 12 end],:) = [];
 mod5.crps_all([1:5 12 end],:) = [];
 
-% SV %%%% REPLACE WITH PC(TREND) PRIOR MODEL
-mod6 = load('Output_iterated/results_iteratednowcasts_newgigg_oldsv_bg_0.5_sv_almon_ortho_groupsparse.mat');
+% PC(TREND)-PC(SV) PRIOR MODEL
+mod6 = load('Output_iterated/results_iteratednowcasts_newgigg_newsvSV_bg_0.5_trend_sv_almon_ortho_groupsparse.mat');
 mod6 = mod6.output;
 mod6.resid_all([1:5 12 end],:) = [];
 mod6.crps_all([1:5 12 end],:) = [];
 
-% Plain   %%%% REPLACE WITH PC(TREND)-PC(SV) PRIOR MODEL
-mod7 = load('Output_iterated/results_iteratednowcasts_oldgigg_plain2_bg_0.5_almon_ortho_groupsparse.mat');
+
+% Trend-const. var 
+mod7 = load('Output_iterated/results_iteratednowcasts_newgigg_oldsv_bg_0.5_trend_almon_ortho_groupsparse.mat');
 mod7 = mod7.output;
 mod7.resid_all([1:5 12 end],:) = [];
 mod7.crps_all([1:5 12 end],:) = [];
@@ -150,11 +151,11 @@ fig1 = figure;
 plot(rmsfe_post_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_post_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rmsfe_post_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rmsfe_post_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rmsfe_post_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rmsfe_post_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rmsfe_post_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rmsfe_post_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rmsfe_post_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19])
 ylim([0 4.5])
 xlim([0 20])
@@ -168,11 +169,11 @@ subplot(2,4,2);
 plot(rmsfe_gfc_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_gfc_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rmsfe_gfc_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rmsfe_gfc_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rmsfe_gfc_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rmsfe_gfc_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rmsfe_gfc_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rmsfe_gfc_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rmsfe_gfc_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19])
 ylim([0 4.5])
 xlim([0 20])
@@ -186,11 +187,11 @@ subplot(2,4,3);
 plot(rmsfe_tranq_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_tranq_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rmsfe_tranq_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rmsfe_tranq_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rmsfe_tranq_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rmsfe_tranq_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rmsfe_tranq_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rmsfe_tranq_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rmsfe_tranq_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19])
 ylim([0 4.5])
 xlim([0 20])
@@ -203,11 +204,11 @@ subplot(2,4,4);
 plot(rmsfe_pandemic_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rmsfe_pandemic_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rmsfe_pandemic_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rmsfe_pandemic_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rmsfe_pandemic_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rmsfe_pandemic_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rmsfe_pandemic_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rmsfe_pandemic_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rmsfe_pandemic_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19])
 ylim([0 10])
 xlim([0 20])
@@ -221,11 +222,11 @@ subplot(2,4,5);
 plot(rtcrps_post_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_post_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rtcrps_post_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rtcrps_post_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rtcrps_post_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rtcrps_post_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rtcrps_post_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rtcrps_post_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rtcrps_post_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19]) 
 ylim([0 2])
 xlim([0 20])
@@ -238,11 +239,11 @@ subplot(2,4,6);
 plot(rtcrps_gfc_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_gfc_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rtcrps_gfc_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rtcrps_gfc_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rtcrps_gfc_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rtcrps_gfc_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rtcrps_gfc_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rtcrps_gfc_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rtcrps_gfc_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19]) 
 ylim([0 2])
 xlim([0 20])
@@ -254,11 +255,11 @@ subplot(2,4,7);
 plot(rtcrps_tranq_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_tranq_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rtcrps_tranq_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rtcrps_tranq_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rtcrps_tranq_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rtcrps_tranq_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rtcrps_tranq_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rtcrps_tranq_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rtcrps_tranq_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19]) 
 ylim([0 2])
 xlim([0 20])
@@ -270,11 +271,11 @@ subplot(2,4,8);
 plot(rtcrps_pandemic_mod1(1:end),'LineWidth',3,Color="#000000",LineStyle="-")
 hold on
 plot(rtcrps_pandemic_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
-plot(rtcrps_pandemic_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="o",LineStyle="-",MarkerSize=2)
+plot(rtcrps_pandemic_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rtcrps_pandemic_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
 plot(rtcrps_pandmic_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rtcrps_pandemic_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
-plot(rtcrps_pandemic_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="--",MarkerSize=2)
+plot(rtcrps_pandemic_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19]) 
 ylim([0 6])
 xlim([0 20])
@@ -282,7 +283,7 @@ xticklabels({'135','120','110','95','85','75','60','50','35','15'})
 h=get(fig1,'CurrentAxes')
 set(h, 'FontSize', 12)
 
-hL =  legend('T-SV','T-SV(t)','T-SV(DHS)','T(DHS)-SV','T-No SV','No T, SV','No T, const var.','NumColumns',4);
+hL =  legend('T-SV','T-SV(t)','T-SV(DHS)','T(DHS)-SV','T(PC)-SV','T(PC)-SV(PC)','T-No SV','NumColumns',4);
 newPosition = [0.6 0.50 0.01 0.01] ;
 set(hL,'Position', newPosition,'FontSize',14);
 h=fig1;

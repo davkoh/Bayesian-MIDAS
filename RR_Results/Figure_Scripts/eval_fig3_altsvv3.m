@@ -38,13 +38,13 @@ mod4.resid_all([1:5 12 end],:) = [];
 mod4.crps_all([1:5 12 end],:) = [];
 
 % Trend (PC) PRIOR MODEL
-mod5 = load('Output_iterated/results_iteratednowcasts_gigg_newsvTrend_bg_0.5_sv_almon_ortho_groupsparse.mat');
+mod5 = load('Output_iterated/results_iteratednowcasts_gigg_newsvTrend_bg_0.5_trend_sv_almon_ortho_groupsparse.mat');
 mod5 = mod5.output;
 mod5.resid_all([1:5 12 end],:) = [];
 mod5.crps_all([1:5 12 end],:) = [];
 
 % PC(TREND)-PC(SV) PRIOR MODEL
-mod6 = load('Output_iterated/results_iteratednowcasts_newgigg_newsvSV_bg_0.5_trend_sv_almon_ortho_groupsparse.mat');
+mod6 = load('Output_iterated/results_gigg_iteratednowcasts_newsv_0.5_trend_sv_almon_ortho_groupsparse.mat');
 mod6 = mod6.output;
 mod6.resid_all([1:5 12 end],:) = [];
 mod6.crps_all([1:5 12 end],:) = [];
@@ -238,7 +238,7 @@ hold on
 plot(rtcrps_pandemic_mod2(1:end),'LineWidth',2,Color="#000000",LineStyle="--")
 plot(rtcrps_pandemic_mod3(1:end),'LineWidth',2,Color="#3EA772",Marker="+",LineStyle="-",MarkerSize=2)
 plot(rtcrps_pandemic_mod4(1:end),'LineWidth',2,Color="#3EA772",LineStyle="--")
-plot(rtcrps_pandmic_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
+plot(rtcrps_pandemic_mod5(1:end),'LineWidth',2,Color = "#8F968B",Marker="square",LineStyle="-",MarkerSize=2)
 plot(rtcrps_pandemic_mod6(1:end),'LineWidth',2,Color = "#8F968B",LineStyle="--")
 plot(rtcrps_pandemic_mod7(1:end),'LineWidth',2,Color = "#FFD99B",Marker="o",LineStyle="-",MarkerSize=2)
 xticks([1,3,5,7,9,11,13,15,17,19]) 

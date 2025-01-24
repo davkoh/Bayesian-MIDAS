@@ -8,7 +8,7 @@ Kohns, D., & Potjagailo, G. (2023). Flexible Bayesian MIDAS: time‑variation, g
 
 -----
 
-This site it currently undergiong major revisions in line with the review process at JBES. The new branch will soon be merged into main.
+This site it currently undergiong revisions in line with the review process at JBES. The new branch will soon be merged into main.
 
 -----
 

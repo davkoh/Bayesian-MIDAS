@@ -63,10 +63,10 @@ rate2 = 2;
 
 
 %% Initialise GIGG Stuff
-beta = zeros(K,1);
-lambda_sq = ones(K,1);
+theta = zeros(K,1);
+varphi_sq = ones(K,1);
 gamma_sq = ones(G,1);
-tau_sq = 1;
+vartheta_sq = 1;
 sigma_sq = var(Y);
 nu = 1;
 stable_const = 1e-07;
@@ -89,7 +89,7 @@ else
 
 end
 
-nu_y = 6; %degrees of freedom
+nu_y = 6; %degrees of freedom of t-distribution
 
 if t_ind == 1 
 lam = 1./gamrnd(nu/2,2/nu,T,1); % mixture weights for t
@@ -109,10 +109,10 @@ else
 end
 
 %% Storage Matrices
-beta_store = zeros(K,n_samples);
-lambda_store = zeros(T,n_samples);
+theta_store = zeros(K,n_samples);
+varphi_store = zeros(T,n_samples);
 tau_store = zeros(T,n_samples);
-tausq_store = zeros(n_samples,1);
+varthetasq_store = zeros(n_samples,1);
 sigma_store = zeros(n_samples,1);
 nuy_store =zeros(n_samples,1);
 store_ktauinv = zeros(T,T,n_samples);
@@ -139,7 +139,7 @@ if trend_ind == 0
 end
 
 for loops = 1:n_burn_in+n_samples
-    %% Draw beta
+    %% Draw theta (MIDAS coefficients)
    yhat = Y; 
 
    if sv_ind == 1 || t_ind == 1
@@ -148,22 +148,20 @@ else
     iOh = sparse(1:T,1:T,1./(sigma_sq));
    end
 
-   %% Sample beta
-
     for gg  = 1:K
-    gl_param_expand_diag_inv(gg) = 1.0 / (tau_sq * gamma_sq(grp_idx(gg)) * lambda_sq(gg));
+    gl_param_expand_diag_inv(gg) = 1.0 / (vartheta_sq * gamma_sq(grp_idx(gg)) * varphi_sq(gg));
     end
-    beta_tmp = tX*iOh*X + sparse(diag(gl_param_expand_diag_inv)) + 1e-10;
-    beta = tX*iOh*yhat + chol(beta_tmp,'lower')*randn(K,1);%beta = (1.0 / sigma_sq) * tX * (Y) + chol(beta_tmp,'lower')*randn(M,1);
-    beta = beta_tmp\beta;
+    theta_tmp = tX*iOh*X + sparse(diag(gl_param_expand_diag_inv)) + 1e-10;
+    theta = tX*iOh*yhat + chol(theta_tmp,'lower')*randn(K,1);%theta = (1.0 / sigma_sq) * tX * (Y) + chol(theta_tmp,'lower')*randn(M,1);
+    theta = theta_tmp\theta;
 
 
-    % Draw tau^2
-        tau_rate_const = sum(beta.^2.*gl_param_expand_diag_inv);
-        tau_sq = 1.0 / gamrnd(tau_shape_const, 1.0 / (tau_sq * tau_rate_const / 2.0 + 1.0 / nu));
+    % Draw vartheta^2
+        tau_rate_const = sum(theta.^2.*gl_param_expand_diag_inv);
+        vartheta_sq = 1.0 / gamrnd(tau_shape_const, 1.0 / (vartheta_sq * tau_rate_const / 2.0 + 1.0 / nu));
 
 
-    % Draw gamma_g^2/lambda^2_gj: Just use the gig function in the matfiles.
+    % Draw gamma_g^2/varphi^2_gj: Just use the gig function in the matfiles.
 for j = 1:G
 
     % Sample gamma_g^2
@@ -181,33 +179,33 @@ for j = 1:G
     ag(j) = sample_ag_slice(ag(j),gamma_sq(j),stable_hyp_lb,stable_hyp_ub,rate1,rate2); % Samples the hierarchical a_g component 
     end
 
-    stable_psi = sum(beta(start_tmp:end_tmp).^2./lambda_sq(start_tmp:end_tmp));   
-    stable_psi = stable_psi./tau_sq;
+    stable_psi = sum(theta(start_tmp:end_tmp).^2./varphi_sq(start_tmp:end_tmp));   
+    stable_psi = stable_psi./vartheta_sq;
     stable_psi = max(stable_psi,stable_const);
     gamma_sq(j) = 1/gigrnd(grp_size(j)/2-ag(j),stable_psi, 2, 1); 
 
 
-    % Sample lambda^2_gj
+    % Sample varphi^2_gj
     for i = 1:grp_size(j)
-        lambda_sq(start_tmp+i-1) = 1.0 / gamrnd(bg(j) + 0.5,...
-            1.0 / (1 + (beta(start_tmp + i-1)^2) / (2.0 * tau_sq * gamma_sq(j))));
+        varphi_sq(start_tmp+i-1) = 1.0 / gamrnd(bg(j) + 0.5,...
+            1.0 / (1 + (theta(start_tmp + i-1)^2) / (2.0 * vartheta_sq * gamma_sq(j))));
     end
 
     % Option for inference on hyper-parameter, b_g
     if bg_ind == 1
-    bg(j) = sample_bg_slice(bg(j),lambda_sq(start_tmp:end_tmp),stable_hyp_lb,stable_hyp_ub,rate1,rate2);
+    bg(j) = sample_bg_slice(bg(j),varphi_sq(start_tmp:end_tmp),stable_hyp_lb,stable_hyp_ub,rate1,rate2);
     end
 end
 
 % Draw nu (mixture variable for Cauchy distribution)
-nu = 1.0 / gamrnd(1, 1 / ((1 / tau_sq) ));
+nu = 1.0 / gamrnd(1, 1 / ((1 / vartheta_sq) ));
 
 %% Sample trend
 
 if trend_ind == 1
 
 
-y_star = Y-X*beta;
+y_star = Y-X*theta;
 
 HiOgH = H'*sparse(1:T,1:T,1./exp(g))*H;
 Ktau =  HiOgH + iOh;    
@@ -222,12 +220,12 @@ end
 %% Sample h_tilde
 
 
-ystar = log((Y-tau-X*beta).^2./lam + .0001);
+ystar = log((Y-tau-X*theta).^2./lam + .0001);
 [h_tilde h0 omegah omegah_hat Domegah] = ...
     SVRW_gam_omori(ystar,h_tilde,h0,omegah,a0_h,b0_h,Vomegah); 
 
 if sv_ind ==0
-    sigma_sq = 1/gamrnd((T+1)/2,1/((Y  - X * beta-tau)'*(Y - X * beta-tau)/2 ));
+    sigma_sq = 1/gamrnd((T+1)/2,1/((Y  - X * theta-tau)'*(Y - X * theta-tau)/2 ));
 end
 
 if sv_ind == 1
@@ -268,7 +266,7 @@ end
 
 %% sample lam
 if t_ind ==1
-e = Y - X*beta -tau;
+e = Y - X*theta -tau;
 lam = 1./gamrnd((nu_y+1)/2,2./(nu_y+e.^2./exp(h)));
 %
 nu_y = sample_nu_slice(nu_y,lam,nu_lb,nu_ub,rate1_t,rate2_t);
@@ -284,12 +282,12 @@ if loops>n_burn_in
     else
     store_alpha(loops-n_burn_in,:) = mean(input.Y) + sqrt(var(input.Y)/T)*randn;
     end
-    tausq_store(loops-n_burn_in) = tau_sq;
+    varthetasq_store(loops-n_burn_in) = vartheta_sq;
     if t_ind == 1
     nuy_store(loops-n_burn_in) = nu_y;
-    lambda_store(:,loops-n_burn_in) = lam;
+    varphi_store(:,loops-n_burn_in) = varphi_sq;
     end
-    beta_store(:,loops-n_burn_in) = beta;
+    theta_store(:,loops-n_burn_in) = theta;
     if sv_ind == 1
     store_h(:,loops-n_burn_in) = h'; 
     store_theta(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0]; 
@@ -309,13 +307,13 @@ end
 
 end
 
-out.beta =beta_store;
+out.theta =theta_store;
 out.tau = tau_store;
 out.h = store_h;
 out.g = store_g;
 out.theta = store_theta;
 out.nu = nuy_store;
-out.lambda = lambda_store;
+out.varphi = varphi_store;
 out.sigma2 = sigma_store;
 if trend_ind == 0
     out.alpha = store_alpha;

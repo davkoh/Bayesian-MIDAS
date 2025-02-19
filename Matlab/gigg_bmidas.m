@@ -21,8 +21,8 @@ ag_ind = input.ag_ind;
 bg_ind = input.bg_ind;
 
 % Prior choices
-ag = input.a;
-bg = input.b;
+ag = input.ag;
+bg = input.bg;
 rate1_t = input.rate1_t;
 rate2_t = input.rate2_t;
 

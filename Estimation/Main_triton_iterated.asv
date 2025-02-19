@@ -45,14 +45,12 @@ modall = zeros(vint,MCMC,nfor);
 % Priors on theta
 fixed_ag = 1/T;
 fized_bg = 0.5;
-rate1 = 1; % for hierachy on ag/bg
-rate2 = 2; % for hiearchy on ag/bg
 
-% Priors for the degrees of freedom of t-distribution (t_nu(exp(h_t)))
-rate1_t = 2;
-rate2_t = 0.1;
-nu_ub = 30;  % upper bound for nu
-nu_lb = 2; % lower bound for nu (2 needed for 2 finite fractional moments)
+
+% Priors for the degrees of freedom
+rate1_t = input.rate1_t;
+rate2_t = input.rate2_t;
+
 
 % For States
 a0_h = 0; b0_h = 10; % starting distribution h_0 ~ N(a0_h,b0_h)
@@ -61,10 +59,18 @@ a0_tau = 0; b0_tau = 10; % starting distribution, t_0 ~ N(a0_tau,b0_tau)
 Vomegah = .001; % prior variance of state standard-deviation, omega_h ~ N(0,Vomegah)
 Vomegag = .001; % prior variance of state standard-deviation, omega_g ~ N(0,Vomegag)
 
+% For t-distribution t_nu(exp(h_t))
+nu_ub = 30;  % upper bound for nu
+nu_lb = 2; % lower bound for nu (2 needed for 2 finite fractional moments)
+
+% For GIGG(a_g,b_g) hyperparameters
+rate1 = 1;
+rate2 = 2;
+
 %% Define things for cluster
 initParPool()
 
-
+hyperpars = [1/T,1/T;1/T,0.5;1/T,1;1,1/T;0.5,1/T;1,1;0.5,0.5]; % Hyperpriors for the GIGG prior
 
 trend =  trend_bash;
 SV = sv_bash;
@@ -73,7 +79,7 @@ almonrest =  almonrest_bash;
 group_sparse =  group_sparse_bash;
 ortho_choice =  ortho_choice_bash;
 
-
+for gg = 2:2 % Loop over all hyperparameters for the GIGG prior
 tic
 %% Loop over time periods
 parfor (tperiod = 1:nfor, str2double(getenv('SLURM_CPUS_PER_TASK')))
@@ -381,7 +387,7 @@ modname = strcat('results','_iteratednowcasts_newgigg_oldsv_','bg_',num2str(hype
 
 save(strcat('Output_iterated','/',modname),"output")
 
-
+end
 
 delete(gcp('nocreate'))
 %% Quick Evaluation

@@ -4,7 +4,7 @@
 % TODO: make this a wrapper function for "horseshoe", "dynamic horseshoe",
 % "gigg"
 
-function out = bmidas(input)
+function out = bmidas_gigg(input)
 
 warning('off','all')
 

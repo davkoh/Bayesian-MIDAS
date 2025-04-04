@@ -222,7 +222,7 @@ input.prior.b_g = repmat(hyperpars(gg,2),sum_grp,1);
 
 
 % TODO: HORSESHOE OR GIGG FUNCTION
-[out] = bmidas(input);
+[out] = bmidas_wrapper(input,midas_prior);
 
 
 %%%%%%%%%%%%%%%%%%  Post Processing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,5 +1,8 @@
 %% GGIG Regression Model Gibbs Sampler
-
+% TODO: add some more explanation if needed: perhaps put this into a quarto
+% case study
+% TODO: make this a wrapper function for "horseshoe", "dynamic horseshoe",
+% ""
 
 function out = bmidas(input)
 
@@ -10,7 +13,7 @@ warning('off','all')
 
 % Model Structure
     % Which MIDAS
-midas_prior = prior.midas_prior; % TODO: input the horseshoe prior
+midas_prior = input.prior.midas_prior; % TODO: input the horseshoe prior
     % Which trend type
 trend_type =  input.prior.trend_type;
     % Which error type
@@ -18,9 +21,9 @@ sv_ind = input.sv_ind;
 t_ind = input.t_ind;
 
 % Prior Structure
-gigg_type =  prior.gigg_type;
-ag = input.a_g;
-bg = input.b_g;
+gigg_type =  input.prior.gigg_type;
+ag = input.prior.a_g;
+bg = input.prior.b_g;
 V_omegag = input.prior.V_omegag;
 V_g0 = input.prior.V_g0;
 V_tau0 = input.prior.V_tau0;
@@ -327,9 +330,6 @@ if loops>n_burn_in
     end
     store_ag(:,loops-n_burn_in) = ag;
     store_bg(:,loops-n_burn_in) = bg;
-    if trend_ind ==1 
-    store_ktauinv(:,:,loops-n_burn_in) = (HiOgH + iOh)\speye(T);
-    end
 end
 
     if (mod(loops, 1000) == 0)
@@ -343,12 +343,13 @@ out.theta =theta_store;
 out.tau = tau_store;
 out.h = store_h;
 out.g = store_g;
-out.theta = store_theta;
+out.state_params = store_state_params;
 out.nu = nuy_store;
 out.varphi = varphi_store;
 out.sigma2 = sigma_store;
-if trend_ind == 0
+if strcmp(trend_type,"fixed") == 1 
     out.alpha = store_alpha;
 end
 out.a = store_ag;
-out.tau_varinv = squeeze(mean(store_ktauinv,3));
+out.b = store_bg;
+%out.tau_varinv = squeeze(mean(store_ktauinv,3));

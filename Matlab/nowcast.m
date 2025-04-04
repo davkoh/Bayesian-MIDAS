@@ -1,0 +1,96 @@
+%% Nowcasting Script
+
+% Retrieve parameters
+betas_final = betas_final';
+gout = out.g;
+hout = out.h;
+tauout = out.tau;
+thetaout = out.state_params;
+nuout = out.nu;
+if strcmp(sv_obs_type,"none")
+sigma2 = out.sigma2;
+end
+
+ypredtt = []; % local storage
+crps_temp = []; % local storage for crps values
+
+if almonrest == 1
+% Get out of sample Almon data
+if v < 7
+[Xv,~] = midas_dat_r2_final(Xm(1:tin-3+tperiod,xind),grp_idx,poly);
+else
+    [Xv,~] = midas_dat_r2_final(Xm(1:tin+tperiod,xind),grp_idx,poly);
+end
+Xv = (Xv);
+Xv = Xv(end,:);
+
+else
+    if v < 7
+    Xv = Xm(tin-3+tperiod,xind);
+    else
+        Xv = Xm(tin+tperiod,xind);
+    end
+end
+
+t_cont = 1;
+sv_cont = 1;
+trend_cont = 0;
+
+% Monte Carlo Integration for predictive distribution
+for j = 1:(MCMC)
+  
+    % Sample g_{t+1}
+    if v<7
+      g_temp = gout(end,j) + randn*thetaout(j,2);
+      tau_temp = tauout(end,j) + exp(0.5*g_temp)*randn;
+      g_temp = g_temp + randn*thetaout(j,2);
+    else
+        g_temp = gout(end,j) + randn*thetaout(j,2);
+    end
+     % Sample h_{t+1}
+     if v<7
+      h_temp = hout(end,j) + randn*thetaout(j,1);
+      h_temp = h_temp + randn*thetaout(j,1);
+     else
+         h_temp = hout(end,j) + randn*thetaout(j,1);
+     end
+
+     % Sample tau_{t+1}
+     if v<7
+      tau_temp = tau_temp  + exp(0.5*g_temp)*randn;
+     else
+         tau_temp = tauout(end,j) + exp(0.5*g_temp)*randn;
+     end
+
+     % Sample y_{t+1}
+
+     if t == 1
+         t_cont = trnd(nuout(j));
+     else
+         t_cont = randn;
+     end
+
+     if SV == 1
+         sv_cont = exp(0.5*h_temp); % add a line for the scale of linear regression
+     else
+         sv_cont = sqrt(sigma2(j));
+     end
+     if trend == 1
+         trend_cont = tau_temp;
+     else 
+         trend_cont = out.alpha(j);
+     end
+
+      y_temp = trend_cont + Xv*betas_final(j,:)' + sv_cont*t_cont;
+
+      ypredtt= [ypredtt y_temp];
+      if t ==1 
+      crps_temp = [crps_temp; crps_t(yf(1,1),nuout(j),trend_cont + Xv*betas_final(j,:)',sv_cont)];
+      else
+          crps_temp = [crps_temp; crps_t(yf(1,1),200,trend_cont + Xv*betas_final(j,:)',sv_cont)];
+      end
+ end
+
+%%%%%%%%%%%%  Save prediction results by nowcast period %%%%%%%%%%%%%%%
+crpsv = [crpsv;mean(crps_temp)];
+predv = [predv;ypredtt];

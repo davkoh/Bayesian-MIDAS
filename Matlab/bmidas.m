@@ -1,5 +1,6 @@
 %% GGIG Regression Model Gibbs Sampler
-
+% TODO: add some more explanation if needed: perhaps put this into a quarto
+% case study
 
 function out = bmidas(input)
 

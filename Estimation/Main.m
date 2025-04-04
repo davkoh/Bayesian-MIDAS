@@ -22,17 +22,17 @@ rng(1,'twister');  %set seed
 
 mkdir 'Output'
 outputfolder = char([cd,'\Output']);  
-addpath("../Data")
-addpath("../Matlab")
+addpath("Data/")
+addpath("Matlab/")
 
-dat_choice =  dat_choice_bash; % Whether to use old data or new data
+dat_choice =  1; % Whether to use old data or new data
 
 if dat_choice == 1
 load("UK_dat_2024.mat");
 else
 load("matlab_input.mat");
 end
-
+% TODO: comment out the surveys for JBES version
 calendar_mod
 
 % Output Matrices
@@ -61,27 +61,52 @@ modall = zeros(vint,MCMC,nfor);
 % BMIDAS (HS) models are defined equivilantly to below with the standard horseshoe
 % prior applied to the MIDAS coefficients
 
+%% MIDAS Priors
+
+% Choose here which prior is applied to the MIDAS component: "gigg",
+% "horseshoe"
+    % "gigg" = θ_{k,j} ~ N(0, 𝜗^2𝛾_{k}^2φ_{k,j}^2), γ_{k}^2 ~ G(a_k,1),
+    % 𝜑_{k,j}^2 ~ G(b_k,1),
+    % "horseshoe" = θ_{k,j} ~ N(0, 𝜗^2φ_{k,j}^2), φ_{k,j} ~ C_+(0,1),
+
+midas_prior = "gigg";
+
+
 %% GIGG(a_g,b_g) Prior, (a_g,b_g) ~ π()
 
-% Choose hierarchy on a_g and b_g: "fixed", "hier_ag", "hier_bg", "hier_agbg"
-gigg = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior
+% Choose hierarchy on a_g and b_g with gigg_type below: "fixed", "hier_ag",
+% "hier_bg", "hier_ag_bg"
+    % "fixed" = GIGG(a_g = 1/T , b_g = 1/2)
+    % "hier_ag" = GIGG(a_g , b_g = 1/2), a_g ~ G(c,d) (ensures relatively
+    % high within-group correlation, inference is on group-wise shrinkage)
+    % "hier_bg" = GIGG(a_g = 1/T , b_g), b_g ~ G(c,d) (ensures relatively
+    % high group-wise shrinkage, inference is on within-group correlation)
+    % "hier_ag_bg" = GIGG(a_g , b_g), (a_g,b_g) ~ G(c,d)
 
-% Fixed hyper-parameters (will be over-written depending on value for gigg)
+% Fixed hyper-parameters (corresponding parameter be over-written if hierichical GIGG is used)
 a_g = 1/T; % controls goup-level shrinkage
 b_g = 0.5; % controls within-group correlation in shrinkage
 
+gigg_type = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior
 
-%% Trend prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t)
-    % if SV == 0, τ_t = α, α ∝ 1
-    % if SV == 1, σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
 
-% Choose hierarchy: "fixed", "PC"
-    % if "fixed": ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
+%% Trend prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
+    % Choose which hierarchy on latent trend with trend_type below:
+    % "fixed_SV", "PC" , "none"
+
+
+% "none" =  τ_t = α, α ∝ 1
+
+
+% hierarchy: "fixed_SV", "PC"
+    % if "fixed_SV": ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
 V_omegag = .001;
-V_g0 = 10;
+V_g0 = 0.10;
 V_tau0 = 10;
     % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_g,g_0,τ_0}
 xi_g = 0.04; % controls tightness of prior 
+
+trend_type = "fixed_SV";
 
 
 %% Error process priors, ε^y_t ~ N(0,σ^{2,y}_t) 
@@ -89,20 +114,24 @@ xi_g = 0.04; % controls tightness of prior
     % if SV == 1, σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % if DHS == 1, σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal
     % et atl. (2019)
-    % if t == 1, ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1)
+    % if t == 1, ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1),
+    % prior for ν^y follows recommendations of the paper
 
 % SV Prior, (h|h_{t-1}) ~ N(h_{t-1},σ^{2,h}_t))
-    % if "fixed": ω_h ~ N(0,V^2_{ω_g})  h_0 ~ N(0,V^2_{g_0})
+    % if "fixed": ω_h ~ N(0,V^2_{ω_h})  h_0 ~ N(0,V^2_{h_0})
 V_omegah = .001;
-V_h0 = 10;
+V_h0 = 0.1;
 
     % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
-xi_h = 0.04; % controls tightness of prior 
+xi_h = 0.04; % controls tightness of prior
+
 
 % Collect prior choices
-prior.gigg = gigg;
+prior.midas_prior = midas_prior;
+prior.gigg_type = gigg_type;
 prior.a_g = a_g;
 prior.b_g = b_g;
+prior.trend_type = trend_type;
 prior.V_omegag = V_omegag;
 prior.V_g0 = V_g0;
 prior.V_tau0 =  V_tau0;
@@ -113,16 +142,16 @@ prior.xi_h = xi_h;
 
 
 %% Define things for cluster
-initParPool()
+%initParPool()
 
 
 
-trend =  trend_bash;
-SV = sv_bash;
-t =  t_bash;
-almonrest =  almonrest_bash;
-group_sparse =  group_sparse_bash;
-ortho_choice =  ortho_choice_bash;
+trend =  1;
+SV = 1;
+t =  0;
+almonrest =  1;
+group_sparse =  1;
+ortho_choice =  1;
 
 
 tic
@@ -212,6 +241,7 @@ end
 
 
 %%%%%%%%%%%%%%%%%%  Estimate Model %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Update Data
 input = [];
 input.grp_idx = grp_idx_temp';
 if v < 7
@@ -223,28 +253,20 @@ input.X = Xv;
 input.burnin = BURNIN;
 input.samples = MCMC;
 input.btrick = 0;
-input.a = repmat(hyperpars(gg,1),sum_grp,1);
-input.b = repmat(hyperpars(gg,2),sum_grp,1);
 input.standardise = 0;
 input.trend_ind = trend;
 input.sv_ind = SV;
 input.t_ind = t ;
-% Insert prior definitions
-input.gigg = gigg;
-input.a_g = a_g;
-input.b_g = b_g;
-input.V_omegag = V_omegag;
-input.V_g0 = V_g0
-input.V_tau0 =  V_tau0;
-input.xi_g = xi_g;
-input.V_omegah = V_omegah;
-input.V_h0 = V_h0;
-input.xi_h = xi_h;
+
+% Update Prior
+input.prior = prior;
+input.prior.a_g = repmat(hyperpars(gg,1),sum_grp,1);
+input.prior.b_g = repmat(hyperpars(gg,2),sum_grp,1);
 
 
 
 % TODO: HORSESHOE OR GIGG FUNCTION
-[out] = gigg_bmidas(input);
+[out] = bmidas(input);
 
 
 % Perform group sparsification

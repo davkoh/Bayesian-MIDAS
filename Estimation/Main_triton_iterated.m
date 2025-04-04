@@ -42,24 +42,54 @@ modall = zeros(vint,MCMC,nfor);
 
 %% Adjust Priors
 
-% Priors on theta
+%% GIGG PRIOR
+
+% TODO: start with 3 choices (hyperpriors,fixed) seperate section for GIGG
+% priors
+
+% Priors on theta (TODO: add explanation), if no hyperprior is specified
 fixed_ag = 1/T;
 fized_bg = 0.5;
-rate1 = 1; % for hierachy on ag/bg
+
+%----
+
+ag_ind = input.ag_ind; % Choice on whether to use hierarchy or not
+bg_ind = input.bg_ind;
+
+rate1 = 1; % for hierachy on ag/bg, ag || bg ~ G(rate1,rate2)
 rate2 = 2; % for hiearchy on ag/bg
+%---
+
+% TODO: add back latest data nowcast, figures only produced when over all
+% nowcast periods and quarters
+
+% TODO: the three simple figures for the given model here, and a separate script
+% for the paper figures (as previously used)
+
+%% STATE PRIOR
+% Fixed State priors 
+% For States (tau,g,h, TODO: add explanation, change to V_subscript)
+a0_h = 0; b0_h = 10; % starting distribution h_0 ~ N(a0_h,b0_h)
+a0_g = 0; b0_g = 10; % starting distribution, g_0 ~ N(a0_g,b0_g)
+a0_tau = 0; b0_tau = 10; % starting distribution, tau_0 ~ N(a0_tau,b0_tau) 
+Vomegah = .001; % prior variance of state standard-deviation, omega_h ~ N(0,Vomegah)
+Vomegag = .001; % prior variance of state standard-deviation, omega_g ~ N(0,Vomegag)
+
+% PC for States
+% choose rate
+
+% Dynamic State priors (horseshoe)
+% choose or not
+
+%% TAIL PRIORS (additional part within states instead of section)
+
 
 % Priors for the degrees of freedom of t-distribution (t_nu(exp(h_t)))
-rate1_t = 2;
+rate1_t = 2; % Documentation: PC prior
 rate2_t = 0.1;
 nu_ub = 30;  % upper bound for nu
 nu_lb = 2; % lower bound for nu (2 needed for 2 finite fractional moments)
 
-% For States
-a0_h = 0; b0_h = 10; % starting distribution h_0 ~ N(a0_h,b0_h)
-a0_g = 0; b0_g = 10; % starting distribution, g_0 ~ N(a0_g,b0_g)
-a0_tau = 0; b0_tau = 10; % starting distribution, t_0 ~ N(a0_tau,b0_tau) 
-Vomegah = .001; % prior variance of state standard-deviation, omega_h ~ N(0,Vomegah)
-Vomegag = .001; % prior variance of state standard-deviation, omega_g ~ N(0,Vomegag)
 
 %% Define things for cluster
 initParPool()
@@ -179,8 +209,8 @@ input.trend_ind = trend;
 input.sv_ind = SV;
 input.t_ind = t ;
 
-
-[out] = gigg_hier_bsts_sv_t_aut(input);
+% TODO: HORSESHOE OR GIGG FUNCTION
+[out] = gigg_bmidas(input);
 
 
 % Perform group sparsification
@@ -371,14 +401,16 @@ else
 end
 
 if t == 1
-    modelname3 = "_terr";
+    modelname3 = "_t";
 else
     modelname3 = '';
 end
 
-
-modname = strcat('results','_iteratednowcasts_newgigg_oldsv_','bg_',num2str(hyperpars(gg,2)),modelname1,modelname2,modelname3,modelname4,modelname5,modelname6,".mat");
-
+% TODO: change main name to something short, ag/bg needs to indicate free or not, shorten acronyms, maybe not ortho 
+modname = strcat('res_',modelname1,modelname2,modelname3,modelname4,modelname5,modelname6,".mat");
+% TODO: make folder name based on the definition of the model, then the
+% model output is generic along with the figure names: nowcast_eval,
+% nowcast_decomposition, incl_prob
 save(strcat('Output_iterated','/',modname),"output")
 
 

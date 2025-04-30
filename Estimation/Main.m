@@ -30,9 +30,10 @@ addpath("Matlab/")
 % Data file name
 dat_file = 'UK_data_bmidas.xlsx'; %%% put in data file name here
 
+% TODO: bring to newest nowcast version!
 % Sample Period
 beg_s = '31-Dec-1998';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
-end_s = '30-Sep-2021';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
+end_s = '30-Sep-2022';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
 
 beg_eval_per = '31-Mar-2011';  % specify quarter in which to begin evaluation period "last day - last month of quarter (MMM) - year" 
                                % full evaluation can be shut off below via "eval_full==0"

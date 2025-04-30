@@ -1,16 +1,5 @@
 % This script takes all the data and mixed freqeuncy choices and produces the data for estimation
 
-% Things that need to be included: 
-    % 1. create a hash for the data choices
-    % 2. load already created matlab data and compare the hash (if it exists)
-    % 3. If hash is new, then re-create the data
-
-%% Load data
-[data_quarterly, names_q]= xlsread('UK_data_bmidas.xlsx','QuarterlyData','A4:e500');
-[data_monthly, names_m]= xlsread('UK_data_bmidas.xlsx','MonthlyData','A4:aq2000');
-%%% important: 
-%  - excel sheet should be read with variable names 
-%  - first data row for data_monthly are transformation indices (will be used in clean_data.m, line 27)
 
 %% Some housekeeping
 clearvars input % Ignore this
@@ -25,77 +14,93 @@ data_choices = struct();
 data_choices.beg_s = beg_s;
 data_choices.end_s = end_s;
 data_choices.beg_eval_per = beg_eval_per;
-data_choices.groups = struct('sur', sur, 'act', act, 'lab', lab, 'pr', pr, 'mon', mon, ...
-                             'mort', mort, 'fin', fin, 'ie', ie, 'vis', vis);
+% Check if variables exist before assigning them to the structure
+if exist('sur', 'var'), data_choices.groups.sur = sur; else, data_choices.groups.sur = []; end
+if exist('act', 'var'), data_choices.groups.act = act; else, data_choices.groups.act = []; end
+if exist('lab', 'var'), data_choices.groups.lab = lab; else, data_choices.groups.lab = []; end
+if exist('pr', 'var'), data_choices.groups.pr = pr; else, data_choices.groups.pr = []; end
+if exist('mon', 'var'), data_choices.groups.mon = mon; else, data_choices.groups.mon = []; end
+if exist('mort', 'var'), data_choices.groups.mort = mort; else, data_choices.groups.mort = []; end
+if exist('fin', 'var'), data_choices.groups.fin = fin; else, data_choices.groups.fin = []; end
+if exist('ie', 'var'), data_choices.groups.ie = ie; else, data_choices.groups.ie = []; end
+if exist('vis', 'var'), data_choices.groups.vis = vis; else, data_choices.groups.vis = []; end
+
 % Create substructures to allow inputs with different dimensions
-data_choices.variables = struct('Var', struct('value', Var, 'size', size(Var)), ...
-                                'Varq', struct('value', Varq, 'size', size(Varq)), ...
-                                'Vars', struct('value', Vars, 'size', size(Vars)), ...
-                                'Vara', struct('value', Vara, 'size', size(Vara)), ...
-                                'Varl', struct('value', Varl, 'size', size(Varl)), ...
-                                'Varp', struct('value', Varp, 'size', size(Varp)), ...
-                                'Varm', struct('value', Varm, 'size', size(Varm)), ...
-                                'Varmt', struct('value', Varmt, 'size', size(Varmt)), ...
-                                'Varf', struct('value', Varf, 'size', size(Varf)), ...
-                                'Vari', struct('value', Vari, 'size', size(Vari)), ...
-                                'Varv', struct('value', Varv, 'size', size(Varv)));
+data_choices.variables = struct();
+variable_names = {'Var', 'Varq', 'Vars', 'Vara', 'Varl', 'Varp', 'Varm', 'Varmt', 'Varf', 'Vari', 'Varv'};
+for i = 1:length(variable_names)
+    var_name = variable_names{i};
+    if exist(var_name, 'var')
+        data_choices.variables.(var_name) = struct('value', eval(var_name), 'size', size(eval(var_name)));
+    else
+        data_choices.variables.(var_name) = struct('value', [], 'size', []);
+    end
+end
 data_choices.transformations = struct('dyoy', dyoy, 'stand', stand);
 data_choices.lag_structure = struct('mismatch', mismatch, 'monthvars', monthvars, ...
                                     'almonrest', almonrest, 'poly', poly);
-data_choices.calendar = struct('Var_delay', Var_delay, 'Varq_delay', Varq_delay, ...
-                               'Vars_delay', Vars_delay, 'Vara_delay', Vara_delay, ...
-                               'Varl_delay', Varl_delay, 'Varp_delay', Varp_delay, ...
-                               'Varm_delay', Varm_delay, 'Varmt_delay', Varmt_delay, ...
-                               'Varf_delay', Varf_delay, 'Vari_delay', Vari_delay, ...
-                               'Varv_delay', Varv_delay, 'Var_pubgroup', Var_pubgroup, ...
-                               'Varq_pubgroup', Varq_pubgroup, 'Vars_pubgroup', Vars_pubgroup, ...
-                               'Vara_pubgroup', Vara_pubgroup, 'Varl_pubgroup', Varl_pubgroup, ...
-                               'Varp_pubgroup', Varp_pubgroup, 'Varm_pubgroup', Varm_pubgroup, ...
-                               'Varmt_pubgroup', Varmt_pubgroup, 'Varf_pubgroup', Varf_pubgroup, ...
-                               'Vari_pubgroup', Vari_pubgroup, 'Varv_pubgroup', Varv_pubgroup);
+calendar_fields = {'Var_delay', 'Varq_delay', 'Vars_delay', 'Vara_delay', 'Varl_delay', ...
+                   'Varp_delay', 'Varm_delay', 'Varmt_delay', 'Varf_delay', 'Vari_delay', ...
+                   'Varv_delay', 'Var_pubgroup', 'Varq_pubgroup', 'Vars_pubgroup', ...
+                   'Vara_pubgroup', 'Varl_pubgroup', 'Varp_pubgroup', 'Varm_pubgroup', ...
+                   'Varmt_pubgroup', 'Varf_pubgroup', 'Vari_pubgroup', 'Varv_pubgroup'};
+data_choices.calendar = struct();
+for i = 1:length(calendar_fields)
+    field_name = calendar_fields{i};
+    if exist(field_name, 'var')
+        data_choices.calendar.(field_name) = eval(field_name);
+    else
+        data_choices.calendar.(field_name) = [];
+    end
+end
 
 
 % Serialize the structure and compute a hash
 data_choices_serialized = jsonencode(data_choices);
 data_hash = DataHash(data_choices_serialized);
 
-% Save the hash for comparison in the next step
-hash_file = 'Data/data_hash.mat';
+% Define the hash file path
+hash_file = fullfile('Data', 'data_hash.mat');
+
+% Check if the hash file exists
 if isfile(hash_file)
-    load(hash_file, 'previous_hash');
-    if strcmp(data_hash, previous_hash)
-        disp('Data choices unchanged. Skipping data preparation.');
+    % Load the previous hash
+    loaded_data = load(hash_file);
+    if isfield(loaded_data, 'data_hash')
+        previous_hash = loaded_data.data_hash;
+        if strcmp(data_hash, previous_hash)
+            disp('Data choices unchanged. Skipping data preparation.');
+            % If the hash matches, load existing data and exit
+            if isfile(fullfile('Data', 'UK_dat_2024.mat'))
+                load(fullfile('Data', 'UK_dat_2024.mat'));
+                disp('Loaded existing data.');
+                return; % Skip further processing
+            else
+                disp('Data file not found. Proceeding with data preparation.');
+            end
+        else
+            disp('Data choices changed. Proceeding with data preparation.');
+        end
     else
-        disp('Data choices changed. Proceeding with data preparation.');
-        save(hash_file, 'data_hash', '-v7.3');
+        disp('Hash file not found. Proceeding with data preparation.');
     end
 else
     disp('No previous hash found. Proceeding with data preparation.');
-    save(hash_file, 'data_hash', '-v7.3');
 end
 
-% if the data exists, don't run the rest:
-if strcmp(data_hash, previous_hash)
-    load('UK_dat_2024.mat');
-    disp('Loaded existing data.');
-    return;
-else 
+% Save the current hash for future comparison
+save(hash_file, 'data_hash', '-v7.3');
 
-%% Do the data handling
+
+[data_quarterly, names_q]= xlsread('UK_data_bmidas.xlsx','QuarterlyData','A4:e500');
+[data_monthly, names_m]= xlsread('UK_data_bmidas.xlsx','MonthlyData','A4:aq2000');
+%%% important: 
+%  - excel sheet should be read with variable names 
+%  - first data row for data_monthly are transformation indices (will be used in clean_data.m, line 27)
+
 %%%%%%%% Does the data cleaning 
 clean_data    %%%% transform and plot data, and prepare data for estimation  
 
-%%%%%%% Building pseudo publication Calendar 
-%  "input" structure which contains the relevant information in order to construct a pseudo real-time calendar as in the
-% paper. Please note, that in the calendar generation code below, it is assumed that the final data publication refers to the quarterly variable coming out.
-
-input.K = size(y_m,2); % number of higher frequency indicators
-input.mismatch = mismatch; % mismatch in sampling frequency
-input.mlags = monthvars; % number of months used for nowcasting
-input.pubdelay = Var_delay; % vector of publication delays of dimension equal to number of higher frequency indicators.
-input.pubseq = Var_pubgroup; % vector of groupings that define which variables come out in which order.
-[puball groupall] = calendar_gen(input);
-                       
 %%%% Nowcast calendar definitions: End date Date, Start date and number of forecast periods choice
 dqend = d_q(end-1);
 dqstart = d_q(1);
@@ -118,4 +123,4 @@ if pseudo_cal ==0
     puball = avail_ind;
 end
 
-end
+

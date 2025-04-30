@@ -28,7 +28,7 @@ addpath("Matlab/")
 %% Define Data
 
 % Data file name
-dat_file = UK_data_bmidas.xlsx; %%% put in data file name here
+dat_file = 'UK_data_bmidas.xlsx'; %%% put in data file name here
 
 % Sample Period
 beg_s = '31-Dec-1998';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
@@ -70,29 +70,17 @@ poly = 4; % Polynomial degree for the Almon lag
 % I.e., for Q2 nowcasts, if variable is available up until June, it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2); and for Q1 nowcasts: March=0, Feb=-1,Jan=-2.
 Var_delay  = [];
 Varq_delay = [-2];  
-Vars_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK
 Vara_delay = [-2;-2;-2;-2];                                               % IoP,IoS,Exports,Imports
 Varl_delay = [-2;-2;-2;-2];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count,
-Varp_delay = [];                                                          % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil                                            
-Varm_delay = [];                                                          % Money: M4,Base rate,LIBOR,Exrate
 Varmt_delay = [-1];                                                       % Mortgages
-Varf_delay = [];                                                          % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
-Vari_delay = [-1;-1;-1];                                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
-Varv_delay = [-1];                                                        % VISA consumer spending
 
 %%% Define Publication release order for stylised calendar month
 % numbering identifies order of publication in an idealised month, same number specified if variables are released on the same release day
 Var_pubgroup = [];
 Varq_pubgroup = [2];
-Vars_pubgroup = [6;6;6;1;1;1;6];                                         % surveys: CBIs,PMIs, GfK
 Vara_pubgroup = [3;3;3;3];                                               % IoP,IoS,Exports,Imports
 Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
-Varp_pubgroup = [];                                                      % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil
-Varm_pubgroup = [];                                                      % Money: M4,Base rate,LIBOR,Exrate
 Varmt_pubgroup = [5];                                                    % Mortgages
-Varf_pubgroup = [];                                                      % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
-Vari_pubgroup = [];                                                      % Infl expect: 5yr market-based, Citi 1y, City5-10y
-Varv_pubgroup = [5];                                                     % VISA consumer spending          
 
 
 data_prep
@@ -149,7 +137,7 @@ midas_prior = "gigg";
     % "hier_ag_bg" = GIGG(a_g , b_g), (a_g,b_g) ~ G(c,d)
 
 % Fixed hyper-parameters (corresponding parameter be over-written if hierichical GIGG is used)
-a_g = 1/T; % controls goup-level shrinkage
+a_g = 1/length(y); % controls goup-level shrinkage
 b_g = 0.5; % controls within-group correlation in shrinkage
 
 gigg_type = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior

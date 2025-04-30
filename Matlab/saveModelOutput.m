@@ -4,8 +4,8 @@ function saveModelOutput(output, ...
 
     
     % Combine model name parts
-    modelname = strcat('trend_',trend_type, '_obs_', sv_obs_type, '_prior_', ...
-                       Midas_type, '_giggtype_', gigg_type, '_transform_', midas_transformation_type);
+    modelname = strcat('TREND_',trend_type, '_OBS_', sv_obs_type, '_PRIOR_', ...
+                       Midas_type, '_GIGGTYPE_', gigg_type, '_TRANSFORM_', midas_transformation_type);
 
     output.modelname = modelname;
                  

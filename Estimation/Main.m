@@ -1,12 +1,12 @@
 %% Estimation script for "Flexible Bayesian MIDAS: time‑variation, group‑shrinkage and sparsity"
 %%% David Kohns, Aalto University
 %%% Galina Potjagailo, Bank of England
-%%% Date 06.03.2025
+%%% Date 30.04.2025
 
 %%% This code estimates the T-SVt-BMIDAS model with GIGG prior and ex-post
 %%% group sparsification
-%   - This code has been optimised for the cluster and is currently under
-%   construction to be more easily modifiable without
+
+
 %%%% ------------------ %%%
 clear all
 rng(1,'twister');  %set seed
@@ -18,34 +18,89 @@ rng(1,'twister');  %set seed
 % for the paper figures (as previously used)
 
 
-%% Define directory and upload data
+%% Directories
 
 mkdir 'Output'
 outputfolder = char([cd,'\Output']);  
 addpath("Data/")
 addpath("Matlab/")
 
-dat_choice =  1; % Whether to use old data or new data
+%% Define Data
 
-if dat_choice == 1
-load("UK_dat_2024.mat");
-else
-load("matlab_input.mat");
-end
-% TODO: comment out the surveys for JBES version
-calendar_mod
+% Data file name
+dat_file = UK_data_bmidas.xlsx; %%% put in data file name here
+
+% Sample Period
+beg_s = '31-Dec-1998';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
+end_s = '30-Sep-2021';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
+
+beg_eval_per = '31-Mar-2011';  % specify quarter in which to begin evaluation period "last day - last month of quarter (MMM) - year" 
+                               % full evaluation can be shut off below via "eval_full==0"
+
+
+% Select groups of monthly series to include (individual series in each group see below)
+sur = 0;     % survey data: NOT AVAILABLE PUBLICLY
+act = 1;     % activity and trade data
+lab = 1;     % labour market series
+mort = 1;     % mortgages
+
+% Select variables in group to include
+%   (exclude individual series by copying them out of the brakets and spearating by through three dots)
+Var  = {};
+Varq = {'GDP_Q'};  ...;'CONS';'HOURS';'INV';
+%Vars = {'CBI_ES';'CBI_S';'CBI_EO';'PMI_M';'PMI_S';'PMI_C';'GfK'};        % surveys: CBIs,PMIs, GfK
+Vara = {'IoP';'IoS';'Exp';'Imp'};                                        % IoP,IoS,Exports,Imports
+Varl = {'UR';'EMP';'Vacancies';'Hours'}; ...'AWE';'Claimant'             % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+Varmt = {'Mortgage'};                                                    % Mortgages
+
+
+% Define Transformation
+dyoy     = 0;    % 1- y-o-y growth rates/changes , 0- m-o-m or q-o-q changes
+stand    = 0;    % 1- standardise all series, 0- standardise only series in levels
+
+% mixed-frequency lag structure
+mismatch = 3; % frequency mismatch between LHS and RHS (3 for quarterly vs monthly)
+monthvars = 6; % amount of months related to LHS quarterly variable (multiples of mismatch, max 12)
+almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
+poly = 4; % Polynomial degree for the Almon lag
+
+%% Define Stylised Calendar
+%%% Define publication delays within quarter for the stylised calendar (same structure as for defining the variable names)
+% Each variable (same order as defined above) is assigned a publication delay according to the latest month it is available for at the end of a quarter.
+% I.e., for Q2 nowcasts, if variable is available up until June, it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2); and for Q1 nowcasts: March=0, Feb=-1,Jan=-2.
+Var_delay  = [];
+Varq_delay = [-2];  
+Vars_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK
+Vara_delay = [-2;-2;-2;-2];                                               % IoP,IoS,Exports,Imports
+Varl_delay = [-2;-2;-2;-2];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count,
+Varp_delay = [];                                                          % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil                                            
+Varm_delay = [];                                                          % Money: M4,Base rate,LIBOR,Exrate
+Varmt_delay = [-1];                                                       % Mortgages
+Varf_delay = [];                                                          % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
+Vari_delay = [-1;-1;-1];                                                  % Infl expect: 5yr market-based, Citi 1y, City5-10y
+Varv_delay = [-1];                                                        % VISA consumer spending
+
+%%% Define Publication release order for stylised calendar month
+% numbering identifies order of publication in an idealised month, same number specified if variables are released on the same release day
+Var_pubgroup = [];
+Varq_pubgroup = [2];
+Vars_pubgroup = [6;6;6;1;1;1;6];                                         % surveys: CBIs,PMIs, GfK
+Vara_pubgroup = [3;3;3;3];                                               % IoP,IoS,Exports,Imports
+Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+Varp_pubgroup = [];                                                      % Prices: CPI,CPI core,RPI,RPIX,PPIout,PPIin,HP,Oil
+Varm_pubgroup = [];                                                      % Money: M4,Base rate,LIBOR,Exrate
+Varmt_pubgroup = [5];                                                    % Mortgages
+Varf_pubgroup = [];                                                      % Financial: FTSE all/250/UK,SP500,Euro stoxx, VIX, VIXUK
+Vari_pubgroup = [];                                                      % Infl expect: 5yr market-based, Citi 1y, City5-10y
+Varv_pubgroup = [5];                                                     % VISA consumer spending          
+
+
+data_prep
+
+%% MCMC Settings
 MCMC =10;
 BURNIN = 10;
 
-% Output Matrices
-crps_all = zeros(vint,nfor); % Storage for CRPS values
-y_pred_all = zeros(MCMC,vint,nfor); % stores predictive distributions for each nowcast
-rtresid_all = zeros(vint,nfor); % stores residuals for each nowcast, based on mean predictive
-rtlogscores_all = zeros(vint,nfor); % stores log-scores for each nowcast
-yf_all =zeros(nfor,1); % Saves the out-of-sample LHS variable for each quarter
-dq_nfor = []; % saves dates of quarters to be nowcasted
-pincl = zeros(vint,max(unique(groupall)),nfor);
-modall = zeros(vint,MCMC,nfor);
 
 %% ----- Choose Priors ----- %%
 
@@ -77,6 +132,7 @@ midas_transformation_type = "almon";
     % "gigg" = θ_{k,j} ~ N(0, 𝜗^2𝛾_{k}^2φ_{k,j}^2), γ_{k}^2 ~ G(a_k,1),
     % 𝜑_{k,j}^2 ~ G(b_k,1),
     % "horseshoe" = θ_{k,j} ~ N(0, 𝜗^2φ_{k,j}^2), φ_{k,j} ~ C_+(0,1),
+    % "MAL" = following Mogliani & Simoni (2021)
 
 midas_prior = "gigg";
 
@@ -102,17 +158,16 @@ gigg_type = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior
 %% Trend prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
     % Choose which hierarchy on latent trend with trend_type below:
     % "fixed_SV", "PC" , "none"
+    % "fixed_SV": ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
+    % "none" =  τ_t = α, α ∝ 1
+    % "PC": π(V_i^2|ξ_i) for i ∈ {ω_g,g_0,τ_0}
 
-
-% "none" =  τ_t = α, α ∝ 1
-
-
-% hierarchy: "fixed_SV", "PC"
-    % if "fixed_SV": ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
+    % For fixed_SV prior
 V_omegag = .001;
 V_g0 = 0.10;
 V_tau0 = 10;
-    % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_g,g_0,τ_0}
+
+    % For PC prior
 xi_g = 0.04; % controls tightness of prior 
 
 trend_type = "fixed_SV";
@@ -122,7 +177,7 @@ trend_type = "fixed_SV";
     % if sv_obs_type == "none", σ^{2,y}_t = σ^2, σ^2 ∝ 1/σ^2
     % if sv_obs_type == "fixed_SV", σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % if sv_obs_type == "PC", σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
-    % if sv_obs_type == "DHS", σ^{2,y}_t follows a the dynamic horseshoe prior of Kowalet al. (2019)
+    % if sv_obs_type == "DHS", σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal et al. (2019)
     % if sv_obs_type == "terr", ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1),
     % prior for ν^y follows recommendations of the paper
 
@@ -136,6 +191,17 @@ xi_h = 0.04; % controls tightness of prior
 
 sv_obs_type = "fixed_SV";
 
+%%%%%%%%%%%%% Automatic from here:
+
+% Output Matrices
+crps_all = zeros(vint,nfor); % Storage for CRPS values
+y_pred_all = zeros(MCMC,vint,nfor); % stores predictive distributions for each nowcast
+rtresid_all = zeros(vint,nfor); % stores residuals for each nowcast, based on mean predictive
+rtlogscores_all = zeros(vint,nfor); % stores log-scores for each nowcast
+yf_all =zeros(nfor,1); % Saves the out-of-sample LHS variable for each quarter
+dq_nfor = []; % saves dates of quarters to be nowcasted
+pincl = zeros(vint,max(unique(groupall)),nfor);
+modall = zeros(vint,MCMC,nfor);
 
 % Collect prior choices
 prior.midas_prior = midas_prior;
@@ -151,19 +217,6 @@ prior.xi_g = xi_g;
 prior.V_omegah = V_omegah;
 prior.V_h0 = V_h0;
 prior.xi_h = xi_h;
-
-
-%% Define things for cluster
-%initParPool()
-
-
-
-trend =  1;
-SV = 1;
-t =  0;
-almonrest =  1;
-group_sparse =  1;
-ortho_choice =  1;
 
 
 tic
@@ -221,8 +274,8 @@ input.prior.b_g = repmat(hyperpars(gg,2),sum_grp,1);
 
 
 
-% TODO: HORSESHOE OR GIGG FUNCTION
-[out] = bmidas(input);
+
+[out] = bmidas_wrapper(input,midas_prior);
 
 
 %%%%%%%%%%%%%%%%%%  Post Processing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -268,6 +321,8 @@ output.d_q = dq_nfor;
 output.incl = pincl;
 output.yf = yf_all;
 output.y = y;
+
+% TODO: saving option whether they want to save
 
 saveModelOutput(output, ...
                 midas_prior, gigg_type, sv_obs_type, ...

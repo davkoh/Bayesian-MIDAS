@@ -1,10 +1,6 @@
-%% GGIG Regression Model Gibbs Sampler
-% TODO: add some more explanation if needed: perhaps put this into a quarto
-% case study
-% TODO: make this a wrapper function for "horseshoe", "dynamic horseshoe",
-% "gigg"
+%% Horseshoe Regression Model Gibbs Sampler
 
-function out = bmidas(input)
+function out = bmidas_mal(input)
 
 warning('off','all')
 
@@ -13,7 +9,7 @@ warning('off','all')
 
 % Model Structure
     % Which MIDAS
-midas_prior = input.prior.midas_prior; % TODO: input the horseshoe prior
+midas_prior = input.prior.midas_prior;
     % Which trend type
 trend_type =  input.prior.trend_type;
     % Which error type

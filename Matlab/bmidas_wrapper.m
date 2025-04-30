@@ -4,7 +4,7 @@ function [out] = bmidas_wrapper(input,midas_prior)
 % MIDAS prior choice: 
     % gigg
     % horseshoe
-    % MAL (Mogliani & Simoni, 2022) model
+    % MAL (Mogliani & Simoni, 2021) model
 
 
   if strcmp(midas_prior,"gigg") == 1

@@ -92,8 +92,8 @@ end
 save(hash_file, 'data_hash', '-v7.3');
 
 
-[data_quarterly, names_q]= xlsread('UK_data_bmidas.xlsx','QuarterlyData','A4:e500');
-[data_monthly, names_m]= xlsread('UK_data_bmidas.xlsx','MonthlyData','A4:aq2000');
+[data_quarterly, names_q]= xlsread('MF_FAME_FULL.xlsx','QuarterlyData','A4:e500');
+[data_monthly, names_m]= xlsread('MF_FAME_FULL.xlsx','MonthlyData','A4:aq2000');
 %%% important: 
 %  - excel sheet should be read with variable names 
 %  - first data row for data_monthly are transformation indices (will be used in clean_data.m, line 27)

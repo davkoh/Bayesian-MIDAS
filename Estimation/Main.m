@@ -30,12 +30,11 @@ addpath("Matlab/")
 % Data file name
 dat_file = 'UK_data_bmidas.xlsx'; %%% put in data file name here
 
-% TODO: bring to newest nowcast version!
 % Sample Period
-beg_s = '31-Dec-1998';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
-end_s = '30-Sep-2022';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
+beg_s = '30-Jun-1997';    %%% put in first quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
+end_s = '30-Jun-2023';    %%% put in last quarter of estimation as "last day - last month of quarter (MMM) - year (YYYY)" 
 
-beg_eval_per = '31-Mar-2011';  % specify quarter in which to begin evaluation period "last day - last month of quarter (MMM) - year" 
+beg_eval_per = '31-Mar-2007';  % specify quarter in which to begin evaluation period "last day - last month of quarter (MMM) - year" 
                                % full evaluation can be shut off below via "eval_full==0"
 
 
@@ -65,6 +64,18 @@ monthvars = 6; % amount of months related to LHS quarterly variable (multiples o
 almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
 poly = 4; % Polynomial degree for the Almon lag
 
+
+data_prep_mac % retrieves that data from excel
+
+%% ---------- Nowcast evaluation choices ------------------- %%
+% Nowcast calendar choice
+pseudo_cal = 1;      % 1 = pseudo data release calendar (baseline in paper)
+                     % 0 = estimation based on latest available data at time of estimation, 
+                     
+% Choice of out-of sample evaluation               
+eval_full = 1;       % 1 - full evaluation over each quarter in nowcast evaluation period starting in beg_eval_per
+                     % 0 - only evaluate over LATEST quarter in the sample    
+
 %% Define Stylised Calendar
 %%% Define publication delays within quarter for the stylised calendar (same structure as for defining the variable names)
 % Each variable (same order as defined above) is assigned a publication delay according to the latest month it is available for at the end of a quarter.
@@ -83,8 +94,14 @@ Vara_pubgroup = [3;3;3;3];                                               % IoP,I
 Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
 Varmt_pubgroup = [5];                                                    % Mortgages
 
+input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
+input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
 
-data_prep
+gen_calendar % retrieves the publication calendar from the choices above
+
+create_mf_data
+
+test = load("Data/UK_dat_2024.mat");
 
 %% MCMC Settings
 MCMC =10;

@@ -64,18 +64,18 @@ for j = 1:(MCMC)
 
      % Sample y_{t+1}
 
-     if t == 1
+     if strcmp(sv_obs_type,"terr")
          t_cont = trnd(nuout(j));
      else
          t_cont = randn;
      end
 
-     if SV == 1
+     if ~strcmp(sv_obs_type,"none")
          sv_cont = exp(0.5*h_temp); % add a line for the scale of linear regression
      else
          sv_cont = sqrt(sigma2(j));
      end
-     if trend == 1
+     if ~strcmp(trend_type,"none")
          trend_cont = tau_temp;
      else 
          trend_cont = out.alpha(j);
@@ -84,7 +84,7 @@ for j = 1:(MCMC)
       y_temp = trend_cont + Xv*betas_final(j,:)' + sv_cont*t_cont;
 
       ypredtt= [ypredtt y_temp];
-      if t ==1 
+      if strcmp(sv_obs_type,"terr")
       crps_temp = [crps_temp; crps_t(yf(1,1),nuout(j),trend_cont + Xv*betas_final(j,:)',sv_cont)];
       else
           crps_temp = [crps_temp; crps_t(yf(1,1),200,trend_cont + Xv*betas_final(j,:)',sv_cont)];

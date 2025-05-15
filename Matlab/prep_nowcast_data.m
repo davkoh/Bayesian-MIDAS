@@ -45,7 +45,7 @@ end
 
 % Orthonormalise the data (QR decomposition) for validity of
 % Group-sparsification in steps below
-if ortho_choice == 1
+if  strcmp(midas_prior,"gigg") || strcmp(midas_prior,"MAL")
 %
 Xsvd = NaN(T,size(Xv,2));
 Qj = cell(sum_grp,1);

@@ -321,7 +321,7 @@ if loops>n_burn_in
     varphi_store(:,loops-n_burn_in) = varphi_sq;
     end
     theta_store(:,loops-n_burn_in) = theta;
-    if ~strcmp(sv_obs_type,"none")
+    if sv_ind == 1
     store_h(:,loops-n_burn_in) = h'; 
     store_state_params(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0]; 
     else

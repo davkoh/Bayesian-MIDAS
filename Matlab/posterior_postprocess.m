@@ -1,7 +1,7 @@
 %% Postprocessing: perform sparsification and retrieve inclusion probabilities
 
 % Perform group sparsification
-if group_sparse == 1
+if strcmp(post_process,"Yes")
 [beta_out] = group_savs_orth(out.theta,grp_idx_temp');
 else
     beta_out= out.theta;
@@ -9,7 +9,7 @@ else
 end
 
 %  Transform back to non-orthogonalised
-if ortho_choice == 1
+if ~strcmp(midas_prior,"horseshoe")
 betas_final = out.theta;
 for j = 1:sum_grp
 xind1 = find(grp_idx_temp == j);

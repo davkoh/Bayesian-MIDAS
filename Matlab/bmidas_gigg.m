@@ -18,6 +18,8 @@ midas_prior = input.prior.midas_prior;
 sv_obs_type = input.prior.sv_obs_type;
     % Which trend type
 trend_type =  input.prior.trend_type;
+    % Which tail type 
+tail_type = input.prior.tail_type;
 
 % Prior Structure
 gigg_type =  input.prior.gigg_type;
@@ -28,7 +30,7 @@ V_g0 = input.prior.V_g0;
 V_tau0 = input.prior.V_tau0;
 xi_g = input.prior.xi_g; % where is that supposed to be used? 
 V_omegah =  input.prior.V_omegah;
-V_h0 = input.prior.V_h0; % TODO: should be within bounds of the slice sampler!
+V_h0 = input.prior.V_h0;
 xi_h = input.prior.xi_h ; % where is that supposed to be used?
 
 
@@ -81,8 +83,8 @@ tX = transpose(X);
 
 % Parameters related to the MIDAS component 
 theta = zeros(K,1); % MIDAS coefficients
-varphi_sq = ones(K,1);
-gamma_sq = ones(G,1);
+varphi_sq = ones(K,1); % Within group scales
+gamma_sq = ones(G,1); % group-wise scales
 vartheta_sq = 1;
 sigma_sq = var(Y);
 nu = 1; % mixture variable for the Cauchy distribution of the global variance parameter in the GIGG (vartheta_sq)
@@ -100,9 +102,9 @@ omegag = sqrt(.2);
 h_tilde = zeros(T,1);
 g_tilde = zeros(T,1);
 
-if strcmp(sv_obs_type,"none")  % TODO: check whether sv_ind is still needed, with the sv_type variable
-    h = ones(T,1);
-    g = ones(T,1);
+if strcmp(sv_obs_type,"none") 
+    h = zeros(T,1);
+    g = zeros(T,1);
 else
     h = h0 + omegah*h_tilde;
     g = g0 + omegah*g_tilde;
@@ -112,8 +114,8 @@ end
 % Parameters related to the t-distribution
 nu_y = 6; %degrees of freedom of t-distribution
 
-if  strcmp(sv_obs_type,"terr") 
-lam = 1./gamrnd(nu/2,2/nu,T,1); % mixture weights for t
+if  strcmp(tail_type,"terr") 
+lam = 1./gamrnd(nu_y/2,2/nu_y,T,1); % mixture weights for t
 else
     lam = ones(T,1);
 end
@@ -135,7 +137,6 @@ tau_store = zeros(T,n_samples); % Trend
 varthetasq_store = zeros(n_samples,1); % Global variances
 sigma_store = zeros(n_samples,1); % observation variance, when not SV is selected
 nuy_store =zeros(n_samples,1); % degrees of freedom of the normal
-store_ktauinv = zeros(T,T,n_samples); % covar of the trend TODO: is this still needed? 
 
 store_ag = zeros(G,n_samples); % hyper-parameter for gamma_k
 store_bg = zeros(G,n_samples); % hyper-parameter for vartheta_{k,j}
@@ -157,7 +158,8 @@ for loops = 1:n_burn_in+n_samples
 else
     iOh = sparse(1:T,1:T,1./(sigma_sq));
    end
-
+    
+    % Draw theta
     for gg  = 1:K
     gl_param_expand_diag_inv(gg) = 1.0 / (vartheta_sq * gamma_sq(grp_idx(gg)) * varphi_sq(gg));
     end
@@ -166,7 +168,7 @@ else
     theta = theta_tmp\theta;
 
 
-    % Draw vartheta^2
+    % Draw vartheta^2 (global) 
         tau_rate_const = sum(theta.^2.*gl_param_expand_diag_inv);
         vartheta_sq = 1.0 / gamrnd(tau_shape_const, 1.0 / (vartheta_sq * tau_rate_const / 2.0 + 1.0 / nu));
 
@@ -225,7 +227,7 @@ else
     tau = zeros(T,1);
 end
 
-%% Sample h_tilde: TODO: add get rid of dependence on sv_ind
+%% Sample h_tilde:
 
 
 ystar = log((Y-tau-X*theta).^2./lam + .0001);
@@ -251,7 +253,7 @@ end
 
 if strcmp(sv_obs_type,"none")
     sigma_sq = 1/gamrnd((T+1)/2,1/((Y  - X * theta-tau)'*(Y - X * theta-tau)/2 ));
-    h = ones(T,1);
+    h = zeros(T,1); %% Changed to zero if none
 end
 
 % Update var-covar of the observation equation
@@ -263,7 +265,7 @@ end
 
 
 
-%% Sample g_tilde: TODO: add PC prior function
+%% Sample g_tilde:
 ystar = log((tau-[tau0;tau(1:end-1)]).^2 + .0001);
 
 if strcmp(trend_type,"fixed_SV") ==1
@@ -284,6 +286,7 @@ if strcmp(trend_type,"PC") ==1
 end
 
 if strcmp(trend_type,"PC") ==1 || strcmp(trend_type,"fixed_SV") ==1
+
 % Sample tau0
 Ktau0 = 1/V_tau0 + 1/exp(g(1));
 tau0_hat = Ktau0\(0/V_tau0 + tau(1)/exp(g(1)));
@@ -292,13 +295,13 @@ end
 
 
 if strcmp(trend_type,"none")
-    g = ones(T,1);
+    g = zeros(T,1); %% changed to zeros if none
 end
 
 
 %% sample t-distribution parameters
 
-if strcmp(sv_obs_type,"terr")
+if strcmp(tail_type,"terr")
 e = Y - X*theta -tau;
 lam = 1./gamrnd((nu_y+1)/2,2./(nu_y+e.^2./exp(h)));
 %
@@ -316,7 +319,7 @@ if loops>n_burn_in
     store_alpha(loops-n_burn_in,:) = mean(input.Y) + sqrt(var(input.Y)/T)*randn; % non-informative prior for the intercept
     end
     varthetasq_store(loops-n_burn_in) = vartheta_sq;
-    if strcmp(sv_obs_type,"terr")
+    if strcmp(tail_type,"terr")
     nuy_store(loops-n_burn_in) = nu_y;
     varphi_store(:,loops-n_burn_in) = varphi_sq;
     end

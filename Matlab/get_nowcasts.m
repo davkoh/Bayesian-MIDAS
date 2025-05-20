@@ -1,4 +1,22 @@
-%% Nowcasting Script
+function  [crpsv predv] = get_nowcasts(data)
+
+betas_final = data.betas_final;
+out = data.out;
+sv_obs_type =data.sv_obs_type;
+almonrest = data.almonrest;
+Xm = data.Xm;
+grp_idx = data.grp_idx;
+poly = data.poly;
+tperiod = data.tperiod;
+xind = data.xind;
+v = data.v;
+tail_type = data.tail_type;
+trend_type = data.trend_type;
+tin = data.tin;
+MCMC = data.MCMC;
+yf = data.yf;
+crpsv = data.crpsv;
+predv= data.predv;
 
 % Retrieve parameters
 betas_final = betas_final';

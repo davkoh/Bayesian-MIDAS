@@ -106,8 +106,8 @@ create_mf_data
 %test = load("Data/UK_dat_2024.mat");
 
 %% MCMC Settings
-MCMC =5000;
-BURNIN = 5000;
+MCMC =500;
+BURNIN = 500;
 
 
 %% ----- Choose Priors ----- %%
@@ -121,9 +121,9 @@ BURNIN = 5000;
 % corresponding default. Any hyper-parameters in the extra hierarchies (e.g. the values for c and d for a_g
 % ~ G(c,d)) are set according to the paper.
 
-% Prior choices for exluded model components can be ignored
+% Prior choices for excluded model components can be ignored
 
-% BMIDAS (HS) models are defined equivilantly to below with the standard horseshoe
+% BMIDAS (HS) models are defined equivalently to below with the standard horseshoe
 % prior applied to the MIDAS coefficients
 
 %% MIDAS Transformation
@@ -181,13 +181,11 @@ xi_g = 0.04; % controls tightness of prior
 trend_type = "fixed_SV";
 
 
-%% Error process priors, ε^y_t ~ N(0,σ^{2,y}_t) 
+%% SV process priors, ε^y_t ~ N(0,σ^{2,y}_t) 
     % if sv_obs_type == "none", σ^{2,y}_t = σ^2, σ^2 ∝ 1/σ^2
     % if sv_obs_type == "fixed_SV", σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % if sv_obs_type == "PC", σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
     % if sv_obs_type == "DHS", σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal et al. (2019)
-    % if sv_obs_type == "terr", ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1),
-    % prior for ν^y follows recommendations of the paper
 
 % TODO: add option for SV+t_err
 
@@ -200,6 +198,12 @@ V_h0 = 0.1;
 xi_h = 0.04; % controls tightness of prior
 
 sv_obs_type = "fixed_SV";
+
+%% Tail thickness
+    % if tail_type == "terr", ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1),
+    % prior for ν^y follows recommendations of the paper
+    % if tail_type == "normal", ε_t ~ N_(0,σ^{2,y}_t)
+tail_type = "normal";
 
 %% Postprocessing Choice
     % yes or no: TODO: make this prettier
@@ -221,6 +225,7 @@ modall = zeros(vint,MCMC,nfor);
 prior.midas_prior = midas_prior;
 prior.gigg_type = gigg_type;
 prior.sv_obs_type = sv_obs_type;
+prior.tail_type = tail_type;
 prior.a_g = a_g;
 prior.b_g = b_g;
 prior.trend_type = trend_type;
@@ -237,7 +242,7 @@ prior.xi_h = xi_h;
 
 tic
 %% Loop over time periods
-for tperiod = 1:nfor
+parfor tperiod = 1:nfor
 
 % Update Data and storage locals    
 Xf = (Xm(1:tin+tperiod,:));
@@ -258,14 +263,15 @@ for v = 1:vint
 
     % TODO: this message needs to change as well! 
     if pseudo_cal == 1
-       %display (['Draws for hyperparameter ' num2str(gg) ', evaluation for time period ' num2str(tperiod) ' of ' num2str(nfor) ', nowcast period ' num2str(v) ' of ' num2str(vint)])    %%% one additional dimension here over which draws are looped?
+       display (['Draws for hyperparameter ' gigg_type ', evaluation for time period ' num2str(tperiod) ' of ' num2str(nfor) ', nowcast period ' num2str(v) ' of ' num2str(vint)])    %%% one additional dimension here over which draws are looped?
     else
-        %display (['Draws for hyperparameter ' num2str(gg), ', evaluation for time period ' num2str(tperiod) ' of ' num2str(nfor)])    %%% one additional dimension here over which draws are looped?
+        display (['Draws for hyperparameter ' gigg_type ', evaluation for time period ' num2str(tperiod) ' of ' num2str(nfor)])    %%% one additional dimension here over which draws are looped?
     end
 
-% Script that for input into bmidas.m fuction
-prep_nowcast_data
 
+%prep_nowcast_data
+nowcast_data = struct('puball',puball,'Xm',Xm,'tperiod',tperiod,'tin',tin,'almonrest',almonrest,'poly',poly,'midas_prior',midas_prior,'v',v,'groupall',groupall);
+[Xv,sum_grp,grp_idx_temp,Qj,Lam_inv_sqr,xind,grp_idx] = get_nowcast_data(nowcast_data);
 
 %%%%%%%%%%%%%%%%%%  Estimate Model %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Update Data
@@ -281,20 +287,6 @@ input.burnin = BURNIN;
 input.samples = MCMC;
 input.btrick = 0;
 input.standardise = 0;
-
-% TODO: get rid of these old ones
-%{
-input.trend_ind = trend;
-input.sv_ind = SV;
-input.t_ind = t ;
-%}
-
-% TODO: get rid of the dependence on gg
-% Update Prior
-%{
-input.prior = prior;
-
-%}
 input.prior = prior;
 input.prior.a_g = repmat(a_g,sum_grp,1);
 input.prior.b_g = repmat(b_g,sum_grp,1);
@@ -307,15 +299,20 @@ input.prior.b_g = repmat(b_g,sum_grp,1);
 %%%%%%%%%%%%%%%%%%  Post Processing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Sparsify and find inclusion probabilities
-posterior_postprocess
+
+post_process_data = struct('post_process',post_process,'out',out,'grp_idx_temp',grp_idx_temp,'midas_prior',midas_prior,'sum_grp',sum_grp,'Qj',Qj,'Lam_inv_sqr',Lam_inv_sqr,'tin',tin,'v',v,'MCMC',MCMC,'xind',xind,'groupall',groupall,'pincl_temp',pincl_temp);
+[betas_final,pincl_temp] = get_sparse_posterior(post_process_data);
+%posterior_postprocess
+
 
 %%%%%%%%%%%%%%%%%%%  Nowcasting %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Perform nowcasting step
-nowcast
- 
- end
+% Perform nowcasting step add predv and the other temporaries!! 
+nowcast_data = struct('betas_final',betas_final, 'out', out , 'sv_obs_type', sv_obs_type, 'almonrest',almonrest, 'Xm',Xm , 'grp_idx', grp_idx,'poly',poly,'tperiod',tperiod, 'xind',xind, 'v',v, 'tail_type',tail_type, 'trend_type',trend_type,'tin',tin,'MCMC',MCMC,'yf',yf,'crpsv',crpsv,'predv',predv);
+[crpsv, predv] = get_nowcasts(nowcast_data);
+%nowcast
 
+end
 
 %% Save predictions
  y_pred = predv;
@@ -348,11 +345,12 @@ output.incl = pincl;
 output.yf = yf_all;
 output.y = y;
 
+test = std(output.resid_all',1);
 % TODO: saving option whether they want to save
 
 saveModelOutput(output, ...
                 midas_prior, gigg_type, sv_obs_type, ...
-                trend_type, midas_transformation_type);
+                trend_type, tail_type, midas_transformation_type);
 
 
 

@@ -1,4 +1,19 @@
-%% Postprocessing: perform sparsification and retrieve inclusion probabilities
+%% Get sparsified posteriors
+function [betas_final,pincl_temp] = get_sparse_posterior(data)
+
+post_process = data.post_process;
+out = data.out;
+grp_idx_temp = data.grp_idx_temp;
+midas_prior = data.midas_prior;
+sum_grp = data.sum_grp;
+Qj = {data.Qj};
+Lam_inv_sqr = {data.Lam_inv_sqr};
+tin = data.tin;
+v = data.v;
+MCMC = data.MCMC;
+xind = data.xind;
+groupall = data.groupall;
+pincl_temp = data.pincl_temp;
 
 % Perform group sparsification
 if strcmp(post_process,"yes")

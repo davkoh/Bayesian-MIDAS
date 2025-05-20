@@ -321,7 +321,7 @@ if loops>n_burn_in
     varthetasq_store(loops-n_burn_in) = vartheta_sq;
     if strcmp(tail_type,"terr")
     nuy_store(loops-n_burn_in) = nu_y;
-    varphi_store(:,loops-n_burn_in) = varphi_sq;
+    %varphi_store(:,loops-n_burn_in) = varphi_sq;
     end
     theta_store(:,loops-n_burn_in) = theta;
     if ~strcmp(sv_obs_type,"none")

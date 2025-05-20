@@ -160,7 +160,7 @@ midas_prior = "gigg";
 a_g = 1/length(y); % controls goup-level shrinkage
 b_g = 0.5; % controls within-group correlation in shrinkage
 
-gigg_type = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior
+gigg_type = "hier_ag"; % Any non-fixed hierarchy selected receives a G(1,2) prior
 
 
 %% Trend prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
@@ -178,7 +178,7 @@ V_tau0 = 10;
     % For PC prior
 xi_g = 0.04; % controls tightness of prior 
 
-trend_type = "fixed_SV";
+trend_type = "PC";
 
 
 %% SV process priors, ε^y_t ~ N(0,σ^{2,y}_t) 
@@ -186,8 +186,6 @@ trend_type = "fixed_SV";
     % if sv_obs_type == "fixed_SV", σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % if sv_obs_type == "PC", σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
     % if sv_obs_type == "DHS", σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal et al. (2019)
-
-% TODO: add option for SV+t_err
 
 % SV Prior, (h|h_{t-1}) ~ N(h_{t-1},σ^{2,h}_t))
     % if "fixed": ω_h ~ N(0,V^2_{ω_h})  h_0 ~ N(0,V^2_{h_0})
@@ -197,13 +195,13 @@ V_h0 = 0.1;
     % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
 xi_h = 0.04; % controls tightness of prior
 
-sv_obs_type = "fixed_SV";
+sv_obs_type = "PC";
 
 %% Tail thickness
     % if tail_type == "terr", ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1),
     % prior for ν^y follows recommendations of the paper
     % if tail_type == "normal", ε_t ~ N_(0,σ^{2,y}_t)
-tail_type = "normal";
+tail_type = "terr";
 
 %% Postprocessing Choice
     % yes or no: TODO: make this prettier
@@ -237,8 +235,6 @@ prior.V_omegah = V_omegah;
 prior.V_h0 = V_h0;
 prior.xi_h = xi_h;
 
-
-% TODO: get rid of dependency on gg! 
 
 tic
 %% Loop over time periods
@@ -328,6 +324,8 @@ res1 = (vint1 - yf(1,1));
 rtresid = [rtresid;res1];
 end
 
+%% TODO: save trend and degrees of freedom
+
 crps_all(:,tperiod) = crpsv;
 rtresid_all(:,tperiod)= rtresid;
 y_pred_all(:,:,tperiod) = y_pred';
@@ -345,7 +343,8 @@ output.incl = pincl;
 output.yf = yf_all;
 output.y = y;
 
-test = std(output.resid_all',1);
+ test = std(output.resid_all',1);
+
 % TODO: saving option whether they want to save
 
 saveModelOutput(output, ...

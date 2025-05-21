@@ -7,26 +7,7 @@ warning('off','all')
 
 %% Unpack Data from Input Structure
 
-% Model Structure
-    % Which MIDAS
-midas_prior = input.prior.midas_prior;
-    % Which trend type
-trend_type =  input.prior.trend_type;
-    % Which error type
-sv_ind = input.sv_ind;
-t_ind = input.t_ind;
 
-% Prior Structure
-gigg_type =  input.prior.gigg_type;
-ag = input.prior.a_g;
-bg = input.prior.b_g;
-V_omegag = input.prior.V_omegag;
-V_g0 = input.prior.V_g0;
-V_tau0 = input.prior.V_tau0;
-xi_g = input.prior.xi_g; % where is that supposed to be used? 
-V_omegah =  input.prior.V_omegah;
-V_h0 = input.prior.V_h0; % TODO: should be within bounds of the slice sampler!
-xi_h = input.prior.xi_h ; % where is that supposed to be used?
 
 % Data for model
 grp_idx = input.grp_idx;

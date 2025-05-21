@@ -142,7 +142,7 @@ midas_transformation_type = "almon";
     % "horseshoe" = θ_{k,j} ~ N(0, 𝜗^2φ_{k,j}^2), φ_{k,j} ~ C_+(0,1),
     % "MAL" = following Mogliani & Simoni (2021)
 
-midas_prior = "gigg";
+midas_prior = "MAL";
 
 
 %% GIGG(a_g,b_g) Prior, (a_g,b_g) ~ π()
@@ -302,7 +302,7 @@ post_process_data = struct('post_process',post_process,'out',out,'grp_idx_temp',
 
 
 %%%%%%%%%%%%%%%%%%%  Nowcasting %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+% TODO: add correct nowcasting steps for the mal as well! 
 % Perform nowcasting step add predv and the other temporaries!! 
 nowcast_data = struct('betas_final',betas_final, 'out', out , 'sv_obs_type', sv_obs_type, 'almonrest',almonrest, 'Xm',Xm , 'grp_idx', grp_idx,'poly',poly,'tperiod',tperiod, 'xind',xind, 'v',v, 'tail_type',tail_type, 'trend_type',trend_type,'tin',tin,'MCMC',MCMC,'yf',yf,'crpsv',crpsv,'predv',predv);
 [crpsv, predv] = get_nowcasts(nowcast_data);

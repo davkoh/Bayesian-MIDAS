@@ -14,7 +14,16 @@ function [out] = bmidas_wrapper(input,midas_prior)
   elseif strcmp(midas_prior,"MAL") ==1
    % Display the warning message
     warning('For MAL prior, the BMIDAS model does not contain a trend or stochastic volatility.');
-      [out] = bmidas_mal(input);
+      It.nsave=input.burnin;
+      It.nburn=input.samples;
+      It.nthin=1;
+      Xv = input.X;
+      y = input.Y;
+      Xf = Xv(end,:);
+      grp_idx = input.grp_idx';
+      [out]=BMIDAS_AGLasso_SS_independent(Xv,y,Xf,It,grp_idx);
+      out.theta = out.beta';
+      out.alpha = out.beta0;
   else
         error('Unsupported midas_prior value: %s. Use "gigg", "horseshoe", or "MAL".', midas_prior);
     end

@@ -1,6 +1,8 @@
 %% Get sparsified posteriors
 function [betas_final,pincl_temp] = get_sparse_posterior(data)
 
+
+
 post_process = data.post_process;
 out = data.out;
 grp_idx_temp = data.grp_idx_temp;
@@ -14,6 +16,8 @@ MCMC = data.MCMC;
 xind = data.xind;
 groupall = data.groupall;
 pincl_temp = data.pincl_temp;
+
+if strcmp(midas_prior,"gigg")
 
 % Perform group sparsification
 if strcmp(post_process,"yes")
@@ -38,3 +42,55 @@ for iii = 1:size(unique(grp_idx_temp),2)
     idx_first_memb = [idx_first_memb;min(find(iii== grp_idx_temp))];
 end
 pincl_temp(v,unique(groupall(xind))) = (sum(betas_final(idx_first_memb,:)'~=0)/MCMC)' ;
+end
+
+%%
+if strcmp(midas_prior,"horseshoe")
+    % Perform group sparsification
+
+    
+    [beta_out] = group_savs((Xv),out.theta,grp_idx_temp'); % Also try to use the non-QR transformed data here.
+    betas_final = beta_out;
+    
+
+%  Transform back to non-orthogonalised
+betas_final = out.theta;
+for j = 1:sum_grp
+xind1 = find(grp_idx_temp == j);
+betas_final(xind1,:) = Qj{j}*Lam_inv_sqr{j}*beta_out(xind1,:)/sqrt(tin);
+end
+
+
+% Variable Selection Info
+idx_first_memb = [];
+for iii = 1:size(unique(grp_idx_temp),2)
+    idx_first_memb = [idx_first_memb;min(find(iii== grp_idx_temp))];
+end
+pincl_temp(v,unique(groupall(xind))) = (sum(betas_final(idx_first_memb,:)'~=0)/MCMC)' ;
+
+
+end
+
+%%
+if strcmp(midas_prior,"MAL")
+    beta_out = out.beta';
+    betas_final = out.beta';
+
+
+for j = 1:sum_grp
+xind1 = find(grp_idx_temp == j);
+betas_final(xind1,:) = (Qj{j}*Lam_inv_sqr{j}*(beta_out(xind1,:)')')/sqrt(tin);
+end
+
+
+% Variable Selection Info
+idx_first_memb = [];
+for iii = 1:size(unique(grp_idx_temp),2)
+    idx_first_memb = [idx_first_memb;min(find(iii== grp_idx_temp))];
+end
+pincl_temp(v,unique(groupall(xind))) = (sum(betas_final(idx_first_memb,:)'~=0)/MCMC)' ;
+modsize_temp(v)=  mean(sum(betas_final(idx_first_memb,:)'~=0,2));
+
+betas_final = betas_final';
+
+end

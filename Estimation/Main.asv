@@ -90,13 +90,13 @@ Varmt_delay = [-1];                                                       % Mort
 % numbering identifies order of publication in an idealised month, same number specified if variables are released on the same release day
 Var_pubgroup = [];
 Varq_pubgroup = [2];
-Vars_pubgroup = [5;5;5;1;1;1;5];                                         % surveys: CBIs,PMIs, GfK
-Vara_pubgroup = [3;3;3;3];                                               % IoP,IoS,Exports,Imports
-Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
-Varmt_pubgroup = [6];                                                    % Mortgages
+Vars_pubgroup = [4;4;4;1;1;1;4];                                         % surveys: CBIs,PMIs, GfK
+Vara_pubgroup = [2;2;2;2];                                               % IoP,IoS,Exports,Imports
+Varl_pubgroup = [3;3;3;3];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+Varmt_pubgroup = [5];                                                    % Mortgages
 
-input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
-input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
+input.mstart = -2; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
+input.mend = 1; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
 
 gen_calendar % retrieves the publication calendar from the choices above
 
@@ -306,11 +306,10 @@ post_process_data = struct('post_process',post_process,'out',out,'grp_idx_temp',
 
 
 %%%%%%%%%%%%%%%%%%%  Nowcasting %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TODO: add correct nowcasting steps for the mal as well! 
 % Perform nowcasting step add predv and the other temporaries!! 
 nowcast_data = struct('betas_final',betas_final, 'out', out , 'sv_obs_type', sv_obs_type, 'almonrest',almonrest, 'Xm',Xm , 'grp_idx', grp_idx,'poly',poly,'tperiod',tperiod, 'xind',xind, 'v',v, 'tail_type',tail_type, 'trend_type',trend_type,'tin',tin,'MCMC',MCMC,'yf',yf,'crpsv',crpsv,'predv',predv,'midas_prior',midas_prior,'cycpredv',cycpredv, ...
     'trendv',trendv,'svv',svv,'sv_trendv',sv_trendv);
-[crpsv, predv] = get_nowcasts(nowcast_data);
+[crpsv, predv,trendv,svv,sv_trendv,cycpredv] = get_nowcasts(nowcast_data);
 %nowcast
 
 end
@@ -360,7 +359,7 @@ output.sv_trend_all = sv_trend_all;
 output.cyc_pred_all = cyc_pred_all;
 
  test = std(output.resid_all',1);
-
+ test2 = squeeze(mean(output.sv_trend_all,1));
 % TODO: saving option whether they want to save
 
 saveModelOutput(output, ...

@@ -24,6 +24,8 @@ input.mlags = monthvars; % number of months used for nowcasting
 input.pubdelay = Var_delay; % vector of publication delays of dimension equal to number of higher frequency indicators.
 input.pubseq = Var_pubgroup; % vector of groupings that define which variables come out in which order.
 [puball groupall] = calendar_gen(input);
+
+puball = puball(1:end-1,:); % because the calendar adds the last gdp outcome once more to the end
                        
 
 

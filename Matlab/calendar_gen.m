@@ -53,9 +53,9 @@ for j = 1:m_num
                 
               if i == pubseq(1) %mvar_cutoff % If clause: when GDP need not need updating
 
-                  if sum(m_name(j) == q_update)>0 % If clause: when GDP need updating (then just copy the line from before
-                   pubseq_midas = [pubseq_midas;pubcal_start];
-                  end
+                  %if sum(m_name(j) == q_update)>0 % If clause: when GDP need updating (then just copy the line from before
+                  % pubseq_midas = [pubseq_midas;pubcal_start];
+                  %end
 
               else
 

@@ -95,15 +95,13 @@ Vara_pubgroup = [3;3;3;3];                                               % IoP,I
 Varl_pubgroup = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
 Varmt_pubgroup = [6];                                                    % Mortgages
 
-input.mstart = -3; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
+input.mstart = -2; % Starting month for each nowcast cycle. E.g: choose -3 for start in March if the latest reference month of the quarter is June.
 input.mend = 2; % Ending month for each nowcast cycle. E.g: choose 2 for ending nowcasting in August if the reference quarter is June.
 
 gen_calendar % retrieves the publication calendar from the choices above
 
 create_mf_data
 
-% TODO: clean this up
-%test = load("Data/UK_dat_2024.mat");
 
 %% MCMC Settings
 MCMC =500;

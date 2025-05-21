@@ -14,7 +14,7 @@ rng(1,'twister');  %set seed
 % TODO: the three simple figures for the given model here, and a separate script
 % for the paper figures (as previously used)
 
-% TODO: add a tail type: normal or t-errors (next!!)
+
 
 
 %% Directories
@@ -158,7 +158,7 @@ midas_prior = "gigg";
 a_g = 1/length(y); % controls goup-level shrinkage
 b_g = 0.5; % controls within-group correlation in shrinkage
 
-gigg_type = "hier_ag"; % Any non-fixed hierarchy selected receives a G(1,2) prior
+gigg_type = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior
 
 
 %% Trend prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
@@ -204,6 +204,12 @@ tail_type = "normal";
 %% Postprocessing Choice
     % yes or no: TODO: make this prettier
 post_process = "yes";
+
+
+%% Name the Model!
+
+mod_name = "mymodel2";
+
 
 %%%%%%%%%%%%% Automatic from here:
 
@@ -327,7 +333,7 @@ rtresid = [rtresid;res1];
 end
 
 %% Save output
-
+dq_nfor = [dq_nfor d_q(tin+tperiod)];
 crps_all(:,tperiod) = crpsv;
 rtresid_all(:,tperiod)= rtresid;
 y_pred_all(:,:,tperiod) = y_pred';
@@ -355,9 +361,10 @@ output.tau_all = tau_all;
 output.sv_all = sv_all;
 output.sv_trend_all = sv_trend_all;
 output.cyc_pred_all = cyc_pred_all;
+output.mod_name = mod_name;
+output.var_names = varnames_qm(1:end-1);
 
- test = std(output.resid_all',1);
- test2 = squeeze(mean(output.sv_trend_all,1));
+ 
 % TODO: saving option whether they want to save
 
 saveModelOutput(output, ...
@@ -366,24 +373,21 @@ saveModelOutput(output, ...
 
 
 
+%% Plotting section
 
+% RMSE and CRPS graph
+model_files = { ...
+    'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_hier_ag_TAIL_normal_TRANSFORM_almon/results.mat', ...
+    'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_fixed_TAIL_normal_TRANSFORM_almon/results.mat' ... % Add more as needed
+};
 
+nowcast_eval_function(model_files);
+
+% Heatmap
+model_file = 'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_fixed_TAIL_normal_TRANSFORM_almon/results.mat';
+plot_heatmap_function(model_file);
+
+% Trend Decomposition
 
 
 delete(gcp('nocreate'))
-%% Quick Evaluation
-disp("----------------")
-rt_rmsfe1_overnowcasts = std(output.resid_all(:,1:end)')'
-rt_rmsfe2_overnowcasts = std(output.resid_all(:,1:51)')'
-rt_crps_overnowcasts = mean(crps_all,2)
-
-% TODO: plotting functions here
-
-%%%%%%%%%%%%  Display results %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-format bank
-disp('Point evaluation: Average RMSFE across evaluation quarters: by nowcast periods (rows)')
-rt_rmsfe1_overnowcasts
-disp('Density evaluation: Average CRPS across evaluation quarters: by nowcast periods (rows)')
-rt_crps_overnowcasts
-disp('Average inclusion probabilities across evaluation quarters, by nowcast periods (row) and indicator (col)')
-[names_incl_m; num2cell(mean(pincl,3))]

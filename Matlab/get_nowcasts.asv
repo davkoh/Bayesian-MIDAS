@@ -1,4 +1,4 @@
-function  [crpsv,predv,trendv,svv,sv_trendv,cycpredv] = get_nowcasts(data)
+function  [crpsv predv] = get_nowcasts(data)
 
 betas_final = data.betas_final;
 out = data.out;
@@ -17,14 +17,8 @@ MCMC = data.MCMC;
 yf = data.yf;
 crpsv = data.crpsv;
 predv= data.predv;
-midas_prior = data.midas_prior;
-cycpredv = data.cycpredv;
-trendv = data.trendv;
-svv = data.svv;
-sv_trendv = data.trendv;
 
-
-if strcmp(midas_prior,"gigg") || strcmp(midas_prior,"horseshoe") 
+if stmidas_prior
 
 % Retrieve parameters
 betas_final = betas_final';
@@ -39,10 +33,6 @@ end
 
 ypredtt = []; % local storage
 crps_temp = []; % local storage for crps values
-cycpredtt = []; % local storage
-trendtt = []; % local storage for trend 
-svtt = []; % local storage for trend 
-sv_trendtt = []; % local storage for trend 
 
 if almonrest == 1
 % Get out of sample Almon data
@@ -114,78 +104,13 @@ for j = 1:(MCMC)
       y_temp = trend_cont + Xv*betas_final(j,:)' + sv_cont*t_cont;
 
       ypredtt= [ypredtt y_temp];
-      cycpredtt= [cycpredtt Xv*betas_final(j,:)'];
-      trendtt = [trendtt tau_temp];
-      svtt = [svtt h_temp];
-      sv_trendtt = [sv_trendtt g_temp];
       if strcmp(tail_type,"terr")
       crps_temp = [crps_temp; crps_t(yf(1,1),nuout(j),trend_cont + Xv*betas_final(j,:)',sv_cont)];
       else
           crps_temp = [crps_temp; crps_t(yf(1,1),200,trend_cont + Xv*betas_final(j,:)',sv_cont)];
       end
-end
-
-end
-
-if strcmp(midas_prior, "MAL")
-betas_final = betas_final;
-sig2 = out.sigma2;
-intercept = out.beta0;
-
-ypredtt = []; % local storage
-crps_temp = []; % local storage for crps values
-
-if almonrest == 1
-% Get out of sample Almon data
-if v < 7
-[Xv,~] = midas_dat_r2_final(Xm(1:tin-3+tperiod,xind),grp_idx,poly);
-else
-    [Xv,~] = midas_dat_r2_final(Xm(1:tin+tperiod,xind),grp_idx,poly);
-end
-Xv = (Xv);
-Xv = Xv(end,:);
-else
-        if v < 7
-    Xv = Xm(tin-3+tperiod,xind);
-    else
-        Xv = Xm(tin+tperiod,xind);
-    end
-end
-
-t_cont = 1;
-sv_cont = 1;
-trend_cont = 0;
-
-% Monte Carlo Integration for predictive distribution
-for j = 1:(MCMC)
-  
-
-  
-         t_cont = randn;
-  
-
-         sv_cont = sqrt(sig2(j));
-     
-         trend_cont = intercept(j);
-     
-
-      y_temp = trend_cont + Xv*betas_final(j,:)' + sv_cont*t_cont;
-
-      ypredtt= [ypredtt y_temp];
-      
-          crps_temp = [crps_temp; crps_t(yf(1,1),200,trend_cont + Xv*betas_final(j,:)',sv_cont)];
-      
  end
-
-end
 
 %%%%%%%%%%%%  Save prediction results by nowcast period %%%%%%%%%%%%%%%
 crpsv = [crpsv;mean(crps_temp)];
 predv = [predv;ypredtt];
-
-if ~strcmp(midas_prior,"MAL")
-    cycpredv = [cycpredv;cycpredtt]; 
-    trendv = [trendv;trendtt];
-    svv = [svv;svtt];
-    sv_trendv = [sv_trendv;sv_trendtt];
-end

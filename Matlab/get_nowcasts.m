@@ -46,7 +46,7 @@ sv_trendtt = []; % local storage for trend
 
 if almonrest == 1
 % Get out of sample Almon data
-if v < 7
+if v < 2
 [Xv,~] = midas_dat_r2_final(Xm(1:tin-3+tperiod,xind),grp_idx,poly);
 else
     [Xv,~] = midas_dat_r2_final(Xm(1:tin+tperiod,xind),grp_idx,poly);
@@ -55,7 +55,7 @@ Xv = (Xv);
 Xv = Xv(end,:);
 
 else
-    if v < 7
+    if v < 2
     Xv = Xm(tin-3+tperiod,xind);
     else
         Xv = Xm(tin+tperiod,xind);
@@ -70,7 +70,7 @@ trend_cont = 0;
 for j = 1:(MCMC)
   
     % Sample g_{t+1}
-    if v<7
+    if v<2
       g_temp = gout(end,j) + randn*thetaout(j,2);
       tau_temp = tauout(end,j) + exp(0.5*g_temp)*randn;
       g_temp = g_temp + randn*thetaout(j,2);
@@ -78,7 +78,7 @@ for j = 1:(MCMC)
         g_temp = gout(end,j) + randn*thetaout(j,2);
     end
      % Sample h_{t+1}
-     if v<7
+     if v<2
       h_temp = hout(end,j) + randn*thetaout(j,1);
       h_temp = h_temp + randn*thetaout(j,1);
      else
@@ -86,7 +86,7 @@ for j = 1:(MCMC)
      end
 
      % Sample tau_{t+1}
-     if v<7
+     if v<2
       tau_temp = tau_temp  + exp(0.5*g_temp)*randn;
      else
          tau_temp = tauout(end,j) + exp(0.5*g_temp)*randn;
@@ -137,7 +137,7 @@ crps_temp = []; % local storage for crps values
 
 if almonrest == 1
 % Get out of sample Almon data
-if v < 7
+if v < 2
 [Xv,~] = midas_dat_r2_final(Xm(1:tin-3+tperiod,xind),grp_idx,poly);
 else
     [Xv,~] = midas_dat_r2_final(Xm(1:tin+tperiod,xind),grp_idx,poly);
@@ -145,7 +145,7 @@ end
 Xv = (Xv);
 Xv = Xv(end,:);
 else
-        if v < 7
+        if v < 2
     Xv = Xm(tin-3+tperiod,xind);
     else
         Xv = Xm(tin+tperiod,xind);

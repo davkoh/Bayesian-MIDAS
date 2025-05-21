@@ -11,8 +11,9 @@
 clear all
 rng(1,'twister');  %set seed
 
-% TODO: the three simple figures for the given model here, and a separate script
-% for the paper figures (as previously used)
+% TODO: trend decomp figure
+% TODO: make iterative prediction cutoff a function of GDP publication
+% TODO: dm table
 
 
 
@@ -208,7 +209,7 @@ post_process = "yes";
 
 %% Name the Model!
 
-mod_name = "mymodel2";
+mod_name = "mymodel1";
 
 
 %%%%%%%%%%%%% Automatic from here:
@@ -281,7 +282,7 @@ nowcast_data = struct('puball',puball,'Xm',Xm,'tperiod',tperiod,'tin',tin,'almon
 % Update Data
 input = [];
 input.grp_idx = grp_idx_temp';
-if v < 7 % for multiple step ahead forecasts
+if v < 2 % for multiple step ahead forecasts
     input.Y = y(3:tin-2+tperiod,:);
 else
     input.Y = y(1:tin-1+tperiod,:);

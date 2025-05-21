@@ -25,7 +25,7 @@ for ii = 1:sum_grp
 end
 
 % Hardcoded adjustment for direct forecast of MIDAS component
-if v <7
+if v <2
 Xv = (Xm(1:tin-4+tperiod,xind));
 T=tin-4+tperiod;
 else

@@ -1,8 +1,7 @@
 %% GGIG Regression Model Gibbs Sampler
 % TODO: add some more explanation if needed: perhaps put this into a quarto
 % case study
-% TODO: make this a wrapper function for "horseshoe", "dynamic horseshoe",
-% "gigg"
+% TODO: make this a wrapper function for, "dynamic horseshoe"
 
 function out = bmidas_gigg(input)
 

@@ -8,7 +8,7 @@ function [out] = bmidas_wrapper(input,midas_prior)
 
 
   if strcmp(midas_prior,"gigg") == 1
-      [out] = bmidas_gigg(input);
+      [out] = bmidas_gigg_dev(input);
   elseif strcmp(midas_prior,"horseshoe") == 1
       [out] = bmidas_horseshoe(input);
   elseif strcmp(midas_prior,"MAL") ==1

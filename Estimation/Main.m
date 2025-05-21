@@ -12,6 +12,7 @@ clear all
 rng(1,'twister');  %set seed
 
 % TODO: trend decomp figure
+% TODO: add dynamic horseshoe
 % TODO: make iterative prediction cutoff a function of GDP publication
 % TODO: dm table
 
@@ -159,7 +160,7 @@ midas_prior = "gigg";
 a_g = 1/length(y); % controls goup-level shrinkage
 b_g = 0.5; % controls within-group correlation in shrinkage
 
-gigg_type = "fixed"; % Any non-fixed hierarchy selected receives a G(1,2) prior
+gigg_type = "hier_ag"; % Any non-fixed hierarchy selected receives a G(1,2) prior
 
 
 %% Trend prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
@@ -194,7 +195,7 @@ V_h0 = 0.1;
     % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
 xi_h = 0.04; % controls tightness of prior
 
-sv_obs_type = "PC";
+sv_obs_type = "DHS";
 
 %% Tail thickness
     % if tail_type == "terr", ε_t ~ t_{ν^y}(0,σ^{2,y}_t) (not available when DHS == 1),
@@ -203,13 +204,13 @@ sv_obs_type = "PC";
 tail_type = "normal";
 
 %% Postprocessing Choice
-    % yes or no: TODO: make this prettier
+    % yes or no: TODO: add more explanation
 post_process = "yes";
 
 
 %% Name the Model!
 
-mod_name = "mymodel1";
+mod_name = "mymodel3";
 
 
 %%%%%%%%%%%%% Automatic from here:
@@ -379,7 +380,8 @@ saveModelOutput(output, ...
 % RMSE and CRPS graph
 model_files = { ...
     'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_hier_ag_TAIL_normal_TRANSFORM_almon/results.mat', ...
-    'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_fixed_TAIL_normal_TRANSFORM_almon/results.mat' ... % Add more as needed
+    'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_fixed_TAIL_normal_TRANSFORM_almon/results.mat', ...
+    'Output/TREND_PC_OBS_DHS_PRIOR_gigg_GIGGTYPE_hier_ag_TAIL_normal_TRANSFORM_almon/results.mat' ... % Add more as needed
 };
 
 nowcast_eval_function(model_files);
@@ -390,5 +392,7 @@ plot_heatmap_function(model_file);
 
 % Trend Decomposition
 
+
+%% Table Section (DM Statistics)
 
 delete(gcp('nocreate'))

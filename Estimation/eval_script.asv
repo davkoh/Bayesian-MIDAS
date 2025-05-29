@@ -1,0 +1,13 @@
+%% Eval against alternative models
+
+%% 1: Plot Nowcast Evaluation
+% RMSE and CRPS graph
+model_files = { ...
+    'Output/TREND_PC_OBS_PC_PRIOR_gigg_GIGGTYPE_hier_ag_TAIL_normal_TRANSFORM_almon/results.mat', ...
+};
+
+nowcast_eval_function(model_files);
+
+
+
+%% 2: Create DM-Statistics Table

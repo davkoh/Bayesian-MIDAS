@@ -26,7 +26,7 @@ addpath("functions/")  %"Matlab/"
 
 % Data file name
 data_quarterly= readtable('BMIDAS_data.xlsx','Sheet','quarterly','Range','a1:e107');     %BMIDAS_data_restricted.xls - shared publically
-data_monthly= readtable('BMIDAS_data.xlsx','Sheet','monthly','Range','a1:s320');          %BMIDAS_data_restricted.xls - shared publically
+data_monthly= readtable('BMIDAS_data_restricted.xlsx','Sheet','monthly','Range','a1:s320');          %BMIDAS_data_restricted.xls - shared publically
 data_transf = readtable('BMIDAS_data.xlsx','Sheet','monthly_metadata','Range','b1:s2');    %BMIDAS_data_restricted.xls - shared publically
 
 
@@ -41,7 +41,7 @@ beg_eval_per = 'Mar-2007';  % specify quarter in which to begin evaluation perio
 %% Select indicators 
 
 % Select groups of monthly series to include (individual series in each group see below)
-sur = 1;     % survey data: NOT AVAILABLE PUBLICLY - put to zero if you're using data set without survey data
+sur = 0;     % survey data: NOT AVAILABLE PUBLICLY - put to zero if you're using data set without survey data
 act = 1;     % activity and trade data
 lab = 1;     % labour market series
 mort = 1;     % mortgages
@@ -150,7 +150,7 @@ puball = puball(1:end-1,:); % because the calendar adds the last gdp outcome onc
                        
 %%%% Here: 1) Adjust monthly and quarterly data vectors to the user choices, 2) Fill up any missing values with a PCA approach 
 % 3) bring the monthly data vector into UMIDAS form. 
-create_mf_data
+create_mf_data_new
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

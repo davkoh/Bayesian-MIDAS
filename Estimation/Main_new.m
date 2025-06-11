@@ -19,8 +19,8 @@ rng(1,'twister');  %set seed
 
 %mkdir 'output'
 outputfolder = char([cd,'\output']);  %"\Output"
-addpath("data/")       %"Data/"
-addpath("functions/")  %"Matlab/"
+addpath("Data/")       %"Data/"
+addpath("Matlab/")  %"Matlab/"
 
 %% Load Data
 

@@ -63,7 +63,7 @@ almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4
 poly = 4; % Polynomial degree for the Almon lag
 
 
-data_prep_mac % retrieves that data from excel
+prep_data_mac_exp% retrieves that data from excel
 
 %% ---------- Nowcast evaluation choices ------------------- %%
 % Nowcast calendar choice

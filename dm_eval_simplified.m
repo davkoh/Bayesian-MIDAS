@@ -1,6 +1,5 @@
 %% dm_eval_simplified.m  –  Compact forecast-evaluation script
 %  ---------------------------------------------------------------
-%  Compatible with Main_new.m output format.
 %  Produces a single Excel file with one summary sheet per benchmark
 %  (score ratios + DM test statistics across subsamples).
 %  ---------------------------------------------------------------
@@ -77,15 +76,15 @@ for mm = 1:nummod
         raw.crps_all(drop, :)  = [];
     end
 
-    res{mm} = raw.resid_all;                                    %#ok<SAGROW>
-    crp{mm} = raw.crps_all;                                     %#ok<SAGROW>
+    res{mm} = raw.resid_all;                                    
+    crp{mm} = raw.crps_all;                                     
 
     if strcmp(model_spec{mm,3}, 'combination')
         pred = squeeze(mean(raw.y_pred_all, 2));
     else
         pred = raw.y_pred_all;
     end
-    wq{mm} = calculateWQS(pred, raw.yf, wqs_quantiles, wqs_weighting);  %#ok<SAGROW>
+    wq{mm} = calculateWQS(pred, raw.yf, wqs_quantiles, wqs_weighting);  
     if ~isempty(drop), wq{mm}(drop, :) = []; end
 
     fprintf('  [%2d/%2d]  %s\n', mm, nummod, ModNames(mm));

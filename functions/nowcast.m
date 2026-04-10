@@ -14,7 +14,7 @@ end
 ypredtt = []; % local storage
 crps_temp = []; % local storage for crps values
 
-if almonrest == 1
+if midas_type == "almon"
 % Get out of sample Almon data
 if v < 7
 [Xv,~] = midas_dat_r2_final(Xm(1:tin-3+tperiod,xind),grp_idx,poly);

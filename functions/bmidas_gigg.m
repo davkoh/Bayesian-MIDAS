@@ -231,8 +231,8 @@ end
 
 ystar = log((Y-tau-X*theta).^2./lam + .0001);
 
-% Fixed SV-trend
-if strcmp(trend_type,"fixed_SV") == 1
+% Fixed SV observation equation
+if strcmp(sv_obs_type,"fixed_SV") == 1
 
 [h_tilde h0 omegah omegah_hat Domegah] = ...
     SVRW_gam_omori(ystar,h_tilde,h0,omegah,0,V_h0,V_omegah); 
@@ -240,8 +240,8 @@ h = h0 + omegah*h_tilde;
 
 end
 
-% PC SV-trend. 
-if strcmp(trend_type,"PC") == 1
+% PC SV observation equation
+if strcmp(sv_obs_type,"PC") == 1
 
 [h_tilde,h0,omegah,V_omegah,V_h0] = ...
     SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,0,V_omegah,V_h0);
@@ -348,7 +348,7 @@ out.state_params = store_state_params;
 out.nu = nuy_store;
 out.varphi = varphi_store;
 out.sigma2 = sigma_store;
-if strcmp(trend_type,"fixed") == 1 
+if strcmp(trend_type,"none") == 1 
     out.alpha = store_alpha;
 end
 out.a = store_ag;

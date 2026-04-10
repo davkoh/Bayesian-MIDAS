@@ -4,7 +4,7 @@ puball = nowcast_data.puball;
 Xm = nowcast_data.Xm;
 tperiod = nowcast_data.tperiod;
 tin = nowcast_data.tin;
-almonrest = nowcast_data.almonrest;
+midas_type = nowcast_data.midas_type;
 poly = nowcast_data.poly;
 midas_prior = nowcast_data.midas_prior;
 v = nowcast_data.v;
@@ -33,7 +33,7 @@ else
     T=tin-1+tperiod;
 end
 
-if almonrest == 1
+if midas_type == "almon"
 % Transform UMIDAS to Almon MIDAS 
 [Xv,Xall] = midas_dat_r2_final(Xv,grp_idx,poly); % 
 Xv = (Xv);

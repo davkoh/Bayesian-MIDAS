@@ -165,8 +165,6 @@ Xm = transf_umidas(y,y_m,input);
 %%% --------------------------------------------------------------- %%
 %%  ---------- Choose MIDAS equation parameters ------------------- %%
 %%% --------------------------------------------------------------- %%
-almonrest = 1; % 1 = use almon lag restrictions (at the moment restricted to a 4th degree with 2 endpoint restrictions), 0 = U-MIDAS
-%%%% IS this OVERWRITING CHOICE IN previous line??
 midas_type = "almon";   % "almon" = Linear 3rd degree almon polynomial with end-point restrictions
                         % "umidas" = linear umidas
 poly = 4; % Polynomial degree for the Almon lag
@@ -226,9 +224,9 @@ if prior.midas~="gigg", prior.gigg_hyper="";end
 %% c) Trend volatility prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
 
 % Choose prior on volatility of latent trend 
-prior.trend_sv = "fixedSV";
+prior.trend_sv = "none";
     % "none"     :  τ_t = α, α ∝ 1
-    % "fixedSV" :  ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
+    % "fixed_SV" :  ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
     % "PC":      :  π(V_i^2|ξ_i) for i ∈ {ω_g,g_0,τ_0}  - Penalised complexity hierarchical prior
 
     % If fixed_SV prior
@@ -242,9 +240,9 @@ xi_g = 0.04; % controls tightness of prior
 %% d) Stochastic volatility observation equation priors, ε^y_t ~ N(0,σ^{2,y}_t) 
 
 % Choose prior for sotchstic volatility in observation equation
-prior.sv_obs = "fixedSV";
+prior.sv_obs = "fixed_SV";
     % "none"     :   σ^{2,y}_t = σ^2, σ^2 ∝ 1/σ^2
-    % "fixedSV" :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
+    % "fixed_SV" :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % "PC"       :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0} Penalised complexity hierarchical prior
     % "DHS"      :   σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal et al. (2019)
 
@@ -332,7 +330,7 @@ for v = 1:vint
 
 
 % Prepare the nowcast data
-nowcast_data = struct('puball',puball,'Xm',Xm,'tperiod',tperiod,'tin',tin,'almonrest',almonrest,'poly',poly,'midas_prior', prior.midas,'v',v,'groupall',groupall);
+nowcast_data = struct('puball',puball,'Xm',Xm,'tperiod',tperiod,'tin',tin,'midas_type',midas_type,'poly',poly,'midas_prior', prior.midas,'v',v,'groupall',groupall);
 [Xv,sum_grp,grp_idx_temp,Qj,Lam_inv_sqr,xind,grp_idx] = get_nowcast_data(nowcast_data);
 
 
@@ -372,7 +370,7 @@ post_process_data = struct('post_process',post_spars,'out',out,'grp_idx_temp',gr
 %%%%%%%%%%%%%%%%%%%  Nowcasting %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Perform nowcasting step add predv and the other temporaries!! 
 nowcast_data = struct('betas_final',betas_final, 'out', out , 'sv_obs_type', prior.sv_obs,...
-    'almonrest',almonrest, 'Xm',Xm , 'grp_idx', grp_idx,'poly',poly,'tperiod',tperiod,...
+    'midas_type',midas_type, 'Xm',Xm , 'grp_idx', grp_idx,'poly',poly,'tperiod',tperiod,...
     'xind',xind, 'v',v, 'tail_type',prior.tail_type, 'trend_type',prior.trend_sv,...
     'tin',tin,'MCMC',MCMC,'yf',yf,'crpsv',crpsv,'predv',predv,'midas_prior',prior.midas,...
     'cycpredv',cycpredv, 'trendv',trendv,'svv',svv,'sv_trendv',sv_trendv);
@@ -402,9 +400,13 @@ rtresid_all(:,tperiod)= rtresid;
 y_pred_all(:,:,tperiod) = y_pred';
 if ~strcmp(prior.midas,"MAL")
 cyc_pred_all(:,:,tperiod) = cycpredv';
-tau_all(:,:,tperiod) = trendv';
-sv_all(:,:,tperiod) = svv';
-sv_trend_all(:,:,tperiod) = sv_trendv';
+if ~strcmp(prior.trend_sv,"none")
+    tau_all(:,:,tperiod) = trendv';
+    sv_trend_all(:,:,tperiod) = sv_trendv';
+end
+if ~strcmp(prior.sv_obs,"none")
+    sv_all(:,:,tperiod) = svv';
+end
 end
 
 end
@@ -420,9 +422,13 @@ output.d_q = dq_nfor;
 output.incl = pincl;
 output.yf = yf_all;
 output.y = y;
-output.tau_all = tau_all;
-output.sv_all = sv_all;
-output.sv_trend_all = sv_trend_all;
+if ~strcmp(prior.trend_sv,"none")
+    output.tau_all = tau_all;
+    output.sv_trend_all = sv_trend_all;
+end
+if ~strcmp(prior.sv_obs,"none")
+    output.sv_all = sv_all;
+end
 output.cyc_pred_all = cyc_pred_all;
 output.var_names = varnames_qm(1:end-1);
 
@@ -536,5 +542,7 @@ figname = fullfile(foldername, strcat('Figure_InclProb.pdf'));
 
 %% Figure: Trend Decomposition - reads trend, cycle and stochastic volatility from output
 % define nowcast periods for which to plot the posterior estimates (between 1 and vint) 
+if ~strcmp(prior.trend_sv,"none")
  plot_trend_decomposition(output,[1 12 vint],foldername)
+end
 

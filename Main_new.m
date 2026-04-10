@@ -11,8 +11,6 @@ clear all
 rng(1,'twister');  %set seed
 
 
-% TODO: dm table
-
 
 
 %% Directories

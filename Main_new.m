@@ -18,10 +18,10 @@ rng(1,'twister');  %set seed
 %% Directories
 
 %mkdir 'output'
-outputfolder = char([cd,'\output']);  %"\Output"
-addpath("data/")       %"Data/"
+outputfolder = fullfile(cd,'output');  %"Output"
+addpath("Data/")       %"Data/"
 addpath("functions/")  %"Matlab/"
-save_output=0;
+save_output=1;
 
 %% Load Data
 
@@ -71,7 +71,9 @@ Varq = Varq(~cellfun('isempty',Varq));
 
 % dates and names
 d_m = datetime(table2array(data_monthly(:,1)),'InputFormat','MMM-yyyy');
-d_q = table2array(data_quarterly(:,1));
+d_m.Format = 'MMM-yyyy';
+d_q = datetime(table2array(data_quarterly(:,1)),'InputFormat','MMM-yyyy');
+d_q.Format = 'MMM-yyyy';
 varnames_qm = [Var',Varq'];
 tm_beg=find(ismember(cellstr(d_m),beg_s)); tm_end=find(ismember(cellstr(d_m),end_s));
 tq_beg=find(ismember(cellstr(d_q),beg_s)); tq_end=find(ismember(cellstr(d_q),end_s));
@@ -82,7 +84,7 @@ d_q=d_q(tq_beg:tq_end);
 data_m = table2array(data_monthly(tm_beg:tm_end,Var'));
 data_q = table2array(data_quarterly(tq_beg:tq_end,Varq'));
 transf = table2array(data_transf(1,Var'));        %transforms for monthly data defined in excel
-clear tm_beg tm_end tq_beg tq_end data_monthly data_quarterly Var Varq Varm Varp Varl Vara Vari Varv Varf Vars 
+clear tm_beg tm_end tq_beg tq_end data_monthly data_quarterly Var Varq Varl Vara Varmt Vars 
 
 %%% data transformations applied
 [y_m, y_q] = transf_data(data_m, data_q,transf, dyoy, stand);
@@ -261,8 +263,8 @@ prior.tail_type = "norm";
 
 
 %% MCMC Settings
-MCMC =5000;
-BURNIN = 5000;
+MCMC =50;
+BURNIN = 50;
 
 
 % ----------------------------------------------------------------------------------- % 
@@ -299,7 +301,7 @@ disp(['Draws for model: ' prior.midas, prior.gigg_hyper,...
     ', observation eq. SV: ', prior.sv_obs, ' error structure: ', prior.tail_type]);
 
 %% Loop over time periods
-parfor tperiod = 1:nfor
+for tperiod = 1:nfor % TODO: change back to parfor
 
 % Update Data and storage locals    
 Xf = Xm(1:tin+tperiod,:);

@@ -2,3 +2,8 @@
 Data/MF_FAME_full.xlsx
 Data/BMIDAS_data_restricted*
 Main_new.m
+
+
+output
+dm_evaluation.m
+run_both_models.m

@@ -46,19 +46,15 @@ end
 
 %%
 if strcmp(midas_prior,"horseshoe")
-    % Perform group sparsification
-
-    
-    [beta_out] = group_savs((Xv),out.theta,grp_idx_temp'); % Also try to use the non-QR transformed data here.
+    % Horseshoe uses the non-orthogonalised SAVS algorithm directly on the
+    % raw (non-QR transformed) design matrix Xv.
+    Xv = data.Xv;
+    if strcmp(post_process,"yes")
+        [beta_out] = group_savs(Xv, out.theta, grp_idx_temp');
+    else
+        beta_out = out.theta;
+    end
     betas_final = beta_out;
-    
-
-%  Transform back to non-orthogonalised
-betas_final = out.theta;
-for j = 1:sum_grp
-xind1 = find(grp_idx_temp == j);
-betas_final(xind1,:) = Qj{j}*Lam_inv_sqr{j}*beta_out(xind1,:)/sqrt(tin);
-end
 
 
 % Variable Selection Info

@@ -197,7 +197,7 @@ post_spars = "yes";
 % Choose here which prior is applied to the MIDAS component: 3 options
 prior.midas = "gigg";
     % "gigg"       :  θ_{k,j} ~ N(0, 𝜗^2𝛾_{k}^2φ_{k,j}^2), γ_{k}^2 ~ G(a_k,1), 𝜑_{k,j}^2 ~ G(b_k,1),
-    % "hs"  :  θ_{k,j} ~ N(0, 𝜗^2φ_{k,j}^2), φ_{k,j} ~ C_+(0,1),
+    % "horseshoe"  :  θ_{k,j} ~ N(0, 𝜗^2φ_{k,j}^2), φ_{k,j} ~ C_+(0,1),
     % "MAL"        :  following Mogliani & Simoni (2021)
 
 
@@ -222,7 +222,7 @@ if prior.midas~="gigg", prior.gigg_hyper="";end
 %% c) Trend volatility prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
 
 % Choose prior on volatility of latent trend 
-prior.trend_sv = "none";
+prior.trend_sv = "PC";
     % "none"     :  τ_t = α, α ∝ 1
     % "fixed_SV" :  ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
     % "PC":      :  π(V_i^2|ξ_i) for i ∈ {ω_g,g_0,τ_0}  - Penalised complexity hierarchical prior
@@ -238,7 +238,7 @@ xi_g = 0.04; % controls tightness of prior
 %% d) Stochastic volatility observation equation priors, ε^y_t ~ N(0,σ^{2,y}_t) 
 
 % Choose prior for sotchstic volatility in observation equation
-prior.sv_obs = "fixed_SV";
+prior.sv_obs = "PC";
     % "none"     :   σ^{2,y}_t = σ^2, σ^2 ∝ 1/σ^2
     % "fixed_SV" :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % "PC"       :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0} Penalised complexity hierarchical prior
@@ -360,7 +360,8 @@ input.prior.b_g = repmat(b_g,sum_grp,1);
 
 post_process_data = struct('post_process',post_spars,'out',out,'grp_idx_temp',grp_idx_temp,...
     'midas_prior',prior.midas,'sum_grp',sum_grp,'Qj',Qj,'Lam_inv_sqr',Lam_inv_sqr,...
-    'tin',tin,'v',v,'MCMC',MCMC,'xind',xind,'groupall',groupall,'pincl_temp',pincl_temp);
+    'tin',tin,'v',v,'MCMC',MCMC,'xind',xind,'groupall',groupall,'pincl_temp',pincl_temp,...
+    'Xv',Xv);
 [betas_final,pincl_temp] = get_sparse_posterior(post_process_data);
 
 

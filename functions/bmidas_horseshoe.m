@@ -83,6 +83,7 @@ taubeta = 1;
 nubeta = ones(K,1);
 etabeta = 1;
 iVbeta = diag(ones(K,1));
+sigma_sq = var(Y);
 
 % Parameters related to the trend
 tau = zeros(T,1);
@@ -143,7 +144,7 @@ for loops = 1:n_burn_in+n_samples
    
    yhat = Y; 
 
-   if sv_ind == 1 || t_ind == 1
+   if ~strcmp(sv_obs_type,"none")
     iOh = iOh;
 else
     iOh = sparse(1:T,1:T,1./(sigma_sq));
@@ -156,18 +157,13 @@ else
     % sample lambdabeta
     lambdabeta = 1./gamrnd(1, 1./( 1./nubeta + 0.5*theta.^2/taubeta ));
     % sample taubeta
-    taubeta = 1/gamrnd( 0.5*(size(X,2)), 1/( 1/etabeta + 0.5*sum(sum(beta.^2./lambdabeta))  ) );
+    taubeta = 1/gamrnd( 0.5*(size(X,2)), 1/( 1/etabeta + 0.5*sum(sum(theta.^2./lambdabeta))  ) );
     % sample nubeta
     nubeta = 1./gamrnd(1, 1./(1 + 1./lambdabeta));
     % samplel etabeta
     etabeta = 1/gamrnd(1, 1/( 1 + 1/taubeta ));
     iVbeta = diag(taubeta*lambdabeta)\speye(size(X,2));
     
-
-
-    % Draw vartheta^2
-     tau_rate_const = sum(theta.^2.*gl_param_expand_diag_inv);
-     vartheta_sq = 1.0 / gamrnd(tau_shape_const, 1.0 / (vartheta_sq * tau_rate_const / 2.0 + 1.0 / nu));
 
 
 %% Sample trend
@@ -276,7 +272,7 @@ if loops>n_burn_in
     else
     store_alpha(loops-n_burn_in,:) = mean(input.Y) + sqrt(var(input.Y)/T)*randn; % non-informative prior for the intercept
     end
-    varthetasq_store(loops-n_burn_in) = vartheta_sq;
+    varthetasq_store(loops-n_burn_in) = taubeta;
     if strcmp(tail_type,"terr")
     nuy_store(loops-n_burn_in) = nu_y;
     %varphi_store(:,loops-n_burn_in) = varphi_sq;

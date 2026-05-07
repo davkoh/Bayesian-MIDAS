@@ -56,6 +56,8 @@ end
 
 % Orthonormalise the data (QR decomposition) for validity of
 % Group-sparsification in steps below
+Qj = [];
+Lam_inv_sqr = [];
 if  strcmp(midas_prior,"gigg") || strcmp(midas_prior,"MAL")
 %
 Xsvd = NaN(T,size(Xv,2));

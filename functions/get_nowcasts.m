@@ -141,7 +141,8 @@ end
 if strcmp(midas_prior, "MAL")
 betas_final = betas_final;
 sig2 = out.sigma2;
-intercept = out.beta0;
+% Intercept is intentionally excluded from the MS nowcast.
+intercept = zeros(MCMC,1);
 
 ypredtt = []; % local storage
 crps_temp = []; % local storage for crps values

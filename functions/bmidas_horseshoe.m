@@ -24,10 +24,26 @@ bg = input.prior.b_g;
 V_omegag = input.prior.V_omegag;
 V_g0 = input.prior.V_g0;
 V_tau0 = input.prior.V_tau0;
-xi_g = input.prior.xi_g; % where is that supposed to be used? 
+xi_g = input.prior.xi_g; % PC-prior rate (lambda) for trend SV scale
 V_omegah =  input.prior.V_omegah;
 V_h0 = input.prior.V_h0;
-xi_h = input.prior.xi_h ; % where is that supposed to be used?
+xi_h = input.prior.xi_h ; % PC-prior rate (lambda) for observation SV scale
+
+% --- Input validation -------------------------------------------------
+valid_sv = ["none","fixed_SV","PC"];
+if ~any(strcmp(sv_obs_type, valid_sv))
+    error('bmidas_horseshoe:badSVObs', ...
+        'Unsupported sv_obs "%s". Use one of: none, fixed_SV, PC (DHS is not implemented).', char(sv_obs_type));
+end
+if ~any(strcmp(trend_type, valid_sv))
+    error('bmidas_horseshoe:badTrend', ...
+        'Unsupported trend_sv "%s". Use one of: none, fixed_SV, PC.', char(trend_type));
+end
+if ~any(strcmp(tail_type, ["norm","terr"]))
+    error('bmidas_horseshoe:badTail', ...
+        'Unsupported tail_type "%s". Use one of: norm, terr.', char(tail_type));
+end
+% ----------------------------------------------------------------------
 
 % Data for model
 grp_idx = input.grp_idx;
@@ -199,20 +215,21 @@ end
 if strcmp(sv_obs_type,"PC") == 1
 
 [h_tilde,h0,omegah,V_omegah,V_h0] = ...
-    SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,0,V_omegah,V_h0);
+    SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,0,V_omegah,V_h0,xi_h);
 h = h0 + omegah*h_tilde;  
 
 end
 
 
 if strcmp(sv_obs_type,"none")
-    sigma_sq = 1/gamrnd((T+1)/2,1/((Y  - X * theta-tau)'*(Y - X * theta-tau)/2 ));
+    e = Y - X * theta - tau;
+    sigma_sq = 1/gamrnd((T+1)/2, 1/( sum(e.^2 ./ lam)/2 ));
     h = zeros(T,1); %% Changed to zero if none
 end
 
 % Update var-covar of the observation equation
 if strcmp(sv_obs_type,"none")
-    iOh = sparse(1:T,1:T,1./(sigma_sq));
+    iOh = sparse(1:T,1:T,1./(sigma_sq.*lam));
 else
    iOh = sparse(1:T,1:T,1./(exp(h).*lam));
 end
@@ -234,7 +251,7 @@ end
 if strcmp(trend_type,"PC") ==1
     
     [g_tilde,g0,omegag,V_omegag,V_g0] = ...
-    SVRW_gam_omori_pc(ystar,g_tilde,g0,omegag,0,V_omegag,V_g0);
+    SVRW_gam_omori_pc(ystar,g_tilde,g0,omegag,0,V_omegag,V_g0,xi_g);
 
     g = g0 + omegag*g_tilde;  
 
@@ -279,10 +296,14 @@ if loops>n_burn_in
     end
     theta_store(:,loops-n_burn_in) = theta;
     if ~strcmp(sv_obs_type,"none")
-    store_h(:,loops-n_burn_in) = h'; 
-    store_state_params(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0]; 
+        store_h(:,loops-n_burn_in) = h';
     else
         sigma_store(loops-n_burn_in) = sigma_sq;
+    end
+    % Always store state params when either SV or trend is active so that
+    % downstream nowcasting/forecasting code can recover omegag/g0/tau0.
+    if ~strcmp(sv_obs_type,"none") || ~strcmp(trend_type,"none")
+        store_state_params(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0];
     end
     store_ag(:,loops-n_burn_in) = ag;
     store_bg(:,loops-n_burn_in) = bg;

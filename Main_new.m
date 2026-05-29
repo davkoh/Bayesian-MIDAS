@@ -222,14 +222,14 @@ if prior.midas~="gigg", prior.gigg_hyper="";end
 %% c) Trend volatility prior, (τ|τ_{t-1}) ~ N(τ_{t-1},σ^{2,τ}_t), σ^{2,τ}_t = exp(g_t), (g_t|g_{t-1},V^2_g) ~ N(g_{t-1},ω^2_g) 
 
 % Choose prior on volatility of latent trend 
-prior.trend_sv = "PC";
+prior.trend_sv = "fixed_SV";
     % "none"     :  τ_t = α, α ∝ 1
     % "fixed_SV" :  ω_g ~ N(0,V^2_{ω_g})  g_0 ~ N(0,V^2_{g_0}), τ_0 ~ N(0,V^2_{τ_0})
     % "PC":      :  π(V_i^2|ξ_i) for i ∈ {ω_g,g_0,τ_0}  - Penalised complexity hierarchical prior
 
     % If fixed_SV prior
-V_omegag = .001;
-V_g0 = 0.10;
+V_omegag = .001; 
+V_g0 = 10;
 V_tau0 = 10;
 
     % If PC prior
@@ -238,7 +238,7 @@ xi_g = 0.04; % controls tightness of prior
 %% d) Stochastic volatility observation equation priors, ε^y_t ~ N(0,σ^{2,y}_t) 
 
 % Choose prior for sotchstic volatility in observation equation
-prior.sv_obs = "PC";
+prior.sv_obs = "fixed_SV";
     % "none"     :   σ^{2,y}_t = σ^2, σ^2 ∝ 1/σ^2
     % "fixed_SV" :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % "PC"       :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0} Penalised complexity hierarchical prior
@@ -246,7 +246,7 @@ prior.sv_obs = "PC";
 
 % if "fixed_SV":  (h|h_{t-1}) ~ N(h_{t-1},σ^{2,h}_t));   ω_h ~ N(0,V^2_{ω_h})  h_0 ~ N(0,V^2_{h_0})
 V_omegah = .001;
-V_h0 = 0.1;
+V_h0 = 10; 
 
 % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
 xi_h = 0.04; % controls tightness of prior
@@ -259,8 +259,8 @@ prior.tail_type = "norm";
 
 
 %% MCMC Settings
-MCMC =50;
-BURNIN = 50;
+MCMC =1000;
+BURNIN = 1000;
 
 
 % ----------------------------------------------------------------------------------- % 
@@ -290,6 +290,15 @@ prior.V_omegah = V_omegah;
 prior.V_h0 = V_h0;
 prior.xi_h = xi_h;
 
+desiredWorkers = 6;
+pool = gcp('nocreate');
+if isempty(pool)
+    parpool('local', desiredWorkers);
+elseif pool.NumWorkers ~= desiredWorkers
+    delete(pool);
+    parpool('local', desiredWorkers);
+end
+
 
 tic
 disp(['Draws for model: ' prior.midas, prior.gigg_hyper,...
@@ -297,7 +306,7 @@ disp(['Draws for model: ' prior.midas, prior.gigg_hyper,...
     ', observation eq. SV: ', prior.sv_obs, ' error structure: ', prior.tail_type]);
 
 %% Loop over time periods
-for tperiod = 1:nfor % TODO: change back to parfor
+parfor tperiod = 1:nfor % TODO: change back to parfor
 
 % Update Data and storage locals    
 Xf = Xm(1:tin+tperiod,:);
@@ -435,7 +444,7 @@ output.var_names = varnames_qm(1:end-1);
 % Save Output
 output.modelname = strcat('T_',prior.trend_sv, '_OBS_', prior.sv_obs, '_',...
     prior.tail_type, '_BMIDAS_',midas_type,'_', prior.midas,'_', prior.gigg_hyper,...
-    '_postspars_',post_spars);
+    '_postspars_',post_spars,'_highvariance_'); %% Just for testpurposes
 
 % Create folder name based on model definition
 foldername = fullfile(char(outputfolder) , char(output.modelname)) ;

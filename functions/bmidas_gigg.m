@@ -27,10 +27,31 @@ bg = input.prior.b_g;
 V_omegag = input.prior.V_omegag;
 V_g0 = input.prior.V_g0;
 V_tau0 = input.prior.V_tau0;
-xi_g = input.prior.xi_g; % where is that supposed to be used? 
+xi_g = input.prior.xi_g; % PC-prior rate (lambda) for trend SV scale
 V_omegah =  input.prior.V_omegah;
 V_h0 = input.prior.V_h0;
-xi_h = input.prior.xi_h ; % where is that supposed to be used?
+xi_h = input.prior.xi_h ; % PC-prior rate (lambda) for observation SV scale
+
+% --- Input validation -------------------------------------------------
+valid_gigg = ["fixed","hier_a","hier_b","hier_a_b"];
+if ~any(strcmp(gigg_type, valid_gigg))
+    error('bmidas_gigg:badGiggHyper', ...
+        'Unsupported gigg_hyper "%s". Use one of: fixed, hier_a, hier_b, hier_a_b.', char(gigg_type));
+end
+valid_sv = ["none","fixed_SV","PC"];
+if ~any(strcmp(sv_obs_type, valid_sv))
+    error('bmidas_gigg:badSVObs', ...
+        'Unsupported sv_obs "%s". Use one of: none, fixed_SV, PC (DHS is not implemented).', char(sv_obs_type));
+end
+if ~any(strcmp(trend_type, valid_sv))
+    error('bmidas_gigg:badTrend', ...
+        'Unsupported trend_sv "%s". Use one of: none, fixed_SV, PC.', char(trend_type));
+end
+if ~any(strcmp(tail_type, ["norm","terr"]))
+    error('bmidas_gigg:badTail', ...
+        'Unsupported tail_type "%s". Use one of: norm, terr.', char(tail_type));
+end
+% ----------------------------------------------------------------------
 
 
 % Data for model
@@ -150,7 +171,7 @@ end
 
 for loops = 1:n_burn_in+n_samples
     %% Draw theta (MIDAS coefficients)
-   yhat = Y; 
+   yhat = Y-X*theta; 
 
    if ~strcmp(sv_obs_type,"none")
     iOh = iOh;
@@ -186,8 +207,8 @@ for j = 1:G
     end
     
     % Option for inference on hyper-parameter, a_g
-   if  strcmp(gigg_type,"hier_ag")==1 || strcmp(gigg_type,"hier_ag_bg")==1  
-    ag(j) = sample_ag_slice(ag(j),gamma_sq(j),stable_hyp_lb,stable_hyp_ub,rate1,rate2); % Samples the hierarchical a_g component 
+    if strcmp(gigg_type,"hier_a") || strcmp(gigg_type,"hier_a_b")
+        ag(j) = sample_ag_slice(ag(j),gamma_sq(j),stable_hyp_lb,stable_hyp_ub,rate1,rate2); % Samples the hierarchical a_g component
     end
 
     stable_psi = sum(theta(start_tmp:end_tmp).^2./varphi_sq(start_tmp:end_tmp));   
@@ -203,8 +224,8 @@ for j = 1:G
     end
 
     % Option for inference on hyper-parameter, b_g
-    if strcmp(gigg_type,"hier_bg")==1 || strcmp(gigg_type,"hier_ag_bg")==1  
-    bg(j) = sample_bg_slice(bg(j),varphi_sq(start_tmp:end_tmp),stable_hyp_lb,stable_hyp_ub,rate1,rate2);
+    if strcmp(gigg_type,"hier_b") || strcmp(gigg_type,"hier_a_b")
+        bg(j) = sample_bg_slice(bg(j),varphi_sq(start_tmp:end_tmp),stable_hyp_lb,stable_hyp_ub,rate1,rate2);
     end
 end
 
@@ -244,20 +265,21 @@ end
 if strcmp(sv_obs_type,"PC") == 1
 
 [h_tilde,h0,omegah,V_omegah,V_h0] = ...
-    SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,0,V_omegah,V_h0);
+    SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,0,V_omegah,V_h0,xi_h);
 h = h0 + omegah*h_tilde;  
 
 end
 
 
 if strcmp(sv_obs_type,"none")
-    sigma_sq = 1/gamrnd((T+1)/2,1/((Y  - X * theta-tau)'*(Y - X * theta-tau)/2 ));
+    e = Y - X * theta - tau;
+    sigma_sq = 1/gamrnd((T+1)/2, 1/( sum(e.^2 ./ lam)/2 ));
     h = zeros(T,1); %% Changed to zero if none
 end
 
 % Update var-covar of the observation equation
 if strcmp(sv_obs_type,"none")
-    iOh = sparse(1:T,1:T,1./(sigma_sq));
+    iOh = sparse(1:T,1:T,1./(sigma_sq.*lam));
 else
    iOh = sparse(1:T,1:T,1./(exp(h).*lam));
 end
@@ -278,7 +300,7 @@ end
 if strcmp(trend_type,"PC") ==1
     
     [g_tilde,g0,omegag,V_omegag,V_g0] = ...
-    SVRW_gam_omori_pc(ystar,g_tilde,g0,omegag,0,V_omegag,V_g0);
+    SVRW_gam_omori_pc(ystar,g_tilde,g0,omegag,0,V_omegag,V_g0,xi_g);
 
     g = g0 + omegag*g_tilde;  
 
@@ -324,10 +346,14 @@ if loops>n_burn_in
     end
     theta_store(:,loops-n_burn_in) = theta;
     if ~strcmp(sv_obs_type,"none")
-    store_h(:,loops-n_burn_in) = h'; 
-    store_state_params(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0]; 
+        store_h(:,loops-n_burn_in) = h';
     else
         sigma_store(loops-n_burn_in) = sigma_sq;
+    end
+    % Always store state params when either SV or trend is active so that
+    % downstream nowcasting/forecasting code can recover omegag/g0/tau0.
+    if ~strcmp(sv_obs_type,"none") || ~strcmp(trend_type,"none")
+        store_state_params(loops-n_burn_in,:) = [omegah omegag h0 g0 tau0];
     end
     store_ag(:,loops-n_burn_in) = ag;
     store_bg(:,loops-n_burn_in) = bg;

@@ -21,7 +21,7 @@ midas_prior = data.midas_prior;
 cycpredv = data.cycpredv;
 trendv = data.trendv;
 svv = data.svv;
-sv_trendv = data.trendv;
+sv_trendv = data.sv_trendv;
 
 
 if strcmp(midas_prior,"gigg") || strcmp(midas_prior,"horseshoe") 

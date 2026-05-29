@@ -1,5 +1,11 @@
 function [h_tilde,h0,omegah,Vomegah,Vh0] = ...
-    SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,a0,Vomegah,Vh0)
+    SVRW_gam_omori_pc(ystar,h_tilde,h0,omegah,a0,Vomegah,Vh0,xi)
+
+    % xi is the rate (lambda) of the exponential PC prior on sqrt(V).
+    % Kept optional so legacy callers without xi continue to work.
+    if nargin < 8 || isempty(xi)
+        xi = 6;
+    end
 
     T = length(h_tilde);
         % normal mixture
@@ -35,52 +41,11 @@ function [h_tilde,h0,omegah,Vomegah,Vh0] = ...
 
    
     % Sample from the posterior of Vomegah
-    Vomegah = sample_V2_slice(Vomegah,omegah,0,0.0001,.5,6); %(0.5,6) (0.5,60) -> used for in-sample plotting
+    Vomegah = sample_V2_slice(Vomegah,omegah,0,0.0001,.5,xi); 
 
-    % Sample from the posterior of Vomegah
-    Vh0 = sample_V2_slice(Vh0,h0,0,0.0001,.5,6); %(0.5,6)
+    % Sample from the posterior of Vh0
+    Vh0 = sample_V2_slice(Vh0,h0,0,0.0001,.5,xi); 
 
 
-%{
-ystar = log((Y-tau-X*beta).^2./lam + .0001);
-    pj = [0.0073 .10556 .00002 .04395 .34001 .24566 .2575];
-    mj = [-10.12999 -3.97281 -8.56686 2.77786 .61942 1.79518 -1.08819]...
-        - 1.2704;  % warning: means already adjusted
-    sigj2 = [5.79596 2.61369 5.17950 .16735 .64009 .34023 1.26261];
-    sigj = sqrt(sigj2);
-        % sample S from a 7-point distrete distribution
-    temprand = rand(T,1);
-    q_SV = repmat(pj,T,1).*normpdf(repmat(ystar,1,7),...
-        repmat(h0+omegah*h_tilde,1,7)+repmat(mj,T,1),repmat(sigj,T,1));
-    q_SV = q_SV./repmat(sum(q_SV,2),1,7);
-    S = 7 - sum(repmat(temprand,1,7)<cumsum(q_SV,2),2)+1;
-    S(S>7) = 7;
-        % sample h_tilde
-    H = speye(T) - sparse(2:T,1:(T-1),ones(1,T-1),T,T);    
-    d_s = mj(S)'; iOs = sparse(1:T,1:T,1./sigj2(S));
-    Kh = H'*H + omegah^2*iOs;
-    h_tilde_hat = Kh\(iOs*omegah*(ystar-d_s-h0));
-    h_tilde = h_tilde_hat + chol(Kh,'lower')'\randn(T,1);
-
-        % sample h0 and omegah
-    Xbeta = [ones(T,1) h_tilde];
-    iVbeta = diag([1/Vh0 1/Vomegah]);    
-    Kbeta = iVbeta + Xbeta'*iOs*Xbeta;
-    beta_hat_SV = Kbeta\(iVbeta*[a0;0] + Xbeta'*iOs*(ystar-d_s));
-    beta_SV = beta_hat_SV + chol(Kbeta,'lower')'\randn(2,1);
-    h0 = beta_SV(1); omegah = beta_SV(2);
-        % randomly permute the signs h_tilde and omegah
-    U = -1 + 2*(rand>0.5);
-    h_tilde = U*h_tilde;
-    omegah = U*omegah;
-
-        % Sample from the posterior of Vomegah
-    Vomegah = sample_V2_slice(Vomegah,omegah,0,0.0001,.5,6); %(0.5,6) (0.5,60) -> used for in-sample plotting
-    %Vomegah = 0.001;
-
-    % Sample from the posterior of Vomegah
-    Vh0 = sample_V2_slice(Vh0,h0,0,0.0001,.5,6); %(0.5,6)
-
-%}
 
 end

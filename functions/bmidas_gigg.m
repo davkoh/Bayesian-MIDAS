@@ -171,7 +171,7 @@ end
 
 for loops = 1:n_burn_in+n_samples
     %% Draw theta (MIDAS coefficients)
-   yhat = Y-X*theta; 
+   yhat = Y; 
 
    if ~strcmp(sv_obs_type,"none")
     iOh = iOh;

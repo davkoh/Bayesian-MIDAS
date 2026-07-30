@@ -148,7 +148,7 @@ end
 
 % adjust quarterly data for publication lag
 y=y_q(1+input.qlag+3*dyoy:end);  
-d_q=d_q(1+input.qlag+3*dyoy:end);    %
+d_q=d_q(1+input.qlag+3*dyoy:end);   
 Tq = size(y);
 
 % Number of nowcast quarters: either only latest or all evaluation period
@@ -245,8 +245,8 @@ prior.sv_obs = "fixed_SV";
     % "DHS"      :   σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal et al. (2019)
 
 % if "fixed_SV":  (h|h_{t-1}) ~ N(h_{t-1},σ^{2,h}_t));   ω_h ~ N(0,V^2_{ω_h})  h_0 ~ N(0,V^2_{h_0})
-V_omegah = .001;
-V_h0 = 10; 
+V_omegah = .001; 
+V_h0 = 10;  
 
 % if "PC": π(V_i^2|ξ_i) for i ∈ {ω_h,h_0}
 xi_h = 0.04; % controls tightness of prior
@@ -306,7 +306,7 @@ disp(['Draws for model: ' prior.midas, prior.gigg_hyper,...
     ', observation eq. SV: ', prior.sv_obs, ' error structure: ', prior.tail_type]);
 
 %% Loop over time periods
-parfor tperiod = 1:nfor % TODO: change back to parfor
+parfor tperiod = 1:nfor 
 
 % Update Data and storage locals    
 Xf = Xm(1:tin+tperiod,:);
@@ -444,7 +444,7 @@ output.var_names = varnames_qm(1:end-1);
 % Save Output
 output.modelname = strcat('T_',prior.trend_sv, '_OBS_', prior.sv_obs, '_',...
     prior.tail_type, '_BMIDAS_',midas_type,'_', prior.midas,'_', prior.gigg_hyper,...
-    '_postspars_',post_spars,'_highvariance_'); %% Just for testpurposes
+    '_postspars_',post_spars);
 
 % Create folder name based on model definition
 foldername = fullfile(char(outputfolder) , char(output.modelname)) ;

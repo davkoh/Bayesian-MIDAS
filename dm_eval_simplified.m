@@ -13,14 +13,23 @@ addpath('functions/')
 outputfolder = fullfile(cd, 'output');
 
 %  Each row: { display_name,  model_folder_name,  'single'|'combination' }
+% model_spec = { ...
+%    'T-SV-GIGG-fixed',   'T_fixedSV_OBS_fixedSV_norm_BMIDAS_almon_gigg_fixed_postspars_yes',  'single'; ...
+%    'T-SV-GIGG-hier-a',  'T_fixedSV_OBS_fixedSV_norm_BMIDAS_almon_gigg_hier_a_postspars_yes', 'single'; ...
+%};
+
 model_spec = { ...
-    'T-SV-GIGG-fixed',   'T_fixedSV_OBS_fixedSV_norm_BMIDAS_almon_gigg_fixed_postspars_yes',  'single'; ...
-    'T-SV-GIGG-hier-a',  'T_fixedSV_OBS_fixedSV_norm_BMIDAS_almon_gigg_hier_a_postspars_yes', 'single'; ...
+    'T-SV-fixed-GIGG-hier-a',       'T_fixed_SV_OBS_fixed_SV_norm_BMIDAS_almon_gigg_hier_a_postspars_yes',  'single'; ...
+    'T-SV-PC-GIGG-hier-a',       'T_PC_OBS_PC_norm_BMIDAS_almon_gigg_hier_a_postspars_yes',  'single'; ...
+%%% Add more models here after running Main_new.m with different settings, e.g.:
+    'HS',     'T_none_OBS_none_norm_BMIDAS_almon_horseshoe__postspars_yes',  'single'; ...
+    'MS',          'T_none_OBS_none_norm_BMIDAS_almon_MAL__postspars_yes',         'single'; ...
+    'GIGG-hier-a',          'T_none_OBS_none_norm_BMIDAS_almon_gigg_hier_a_postspars_yes',         'single'; ...
 };
 
 rows_to_drop = [];
 
-benchmark_names = ["T-SV-GIGG-fixed"];
+benchmark_names = ["MS","GIGG-hier-a"];
 
 %% ===================================================================
 %%  2.  SUBSAMPLE DEFINITION (date-based)
@@ -218,16 +227,16 @@ fprintf('Done.  (* p<0.10, ** p<0.05, *** p<0.01 for ratio<1)\n');
 %% ===================================================================
 %%  Helper: significance stars
 %% ===================================================================
-function s = sig_stars(ratio, pv)
-    if ratio >= 1 || isnan(pv)
-        s = '';
-    elseif pv < 0.01
-        s = '***';
-    elseif pv < 0.05
-        s = '**';
-    elseif pv < 0.10
-        s = '*';
-    else
-        s = '';
-    end
-end
+%function s = sig_stars(ratio, pv)
+%    if ratio >= 1 || isnan(pv)
+%        s = '';
+%    elseif pv < 0.01
+%        s = '***';
+%    elseif pv < 0.05
+%        s = '**';
+%    elseif pv < 0.10
+%        s = '*';
+%    else
+%        s = '';
+%    end
+%end

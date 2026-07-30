@@ -15,7 +15,7 @@ for j = 1:G
     ind = find(grp_idx == j);
     l2b = sqrt((pbeta(ind,i)'*pbeta(ind,i)));
     l2x2 = norm(X(ind))^2;
-    mu_j = 1/(l2b^2); % was at 1/(l2b^2); was at 1/(l2b^2.5) for the simulations
+    mu_j = 1/(l2b^2);
 
     if mu_j/(l2x2*l2x2) >= 1
         pSAVS(ind,i) = 0;

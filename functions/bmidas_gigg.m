@@ -24,12 +24,12 @@ tail_type = input.prior.tail_type;
 gigg_type =  input.prior.gigg_hyper;
 ag = input.prior.a_g;
 bg = input.prior.b_g;
-V_omegag = input.prior.V_omegag;
+V_omegag = input.prior.V_omegag ;
 V_g0 = input.prior.V_g0;
-V_tau0 = input.prior.V_tau0;
+V_tau0 = input.prior.V_tau0 ;
 xi_g = input.prior.xi_g; % PC-prior rate (lambda) for trend SV scale
-V_omegah =  input.prior.V_omegah;
-V_h0 = input.prior.V_h0;
+V_omegah =  input.prior.V_omegah ;
+V_h0 = input.prior.V_h0 ;
 xi_h = input.prior.xi_h ; % PC-prior rate (lambda) for observation SV scale
 
 % --- Input validation -------------------------------------------------
@@ -117,10 +117,18 @@ gl_param_expand_diag_inv = zeros(K,1);
 % Parameters related to the trend
 tau = zeros(T,1);
 h0 = log(var(Y))/5; g0 = log(var(Y))/10; tau0 = mean(Y);
-omegah = sqrt(.2);
-omegag = sqrt(.2);
+omegah = 0.001;%sqrt(.2);
+omegag = 0.001; %sqrt(.2);
 h_tilde = zeros(T,1);
 g_tilde = zeros(T,1);
+V_g0 = V_g0/10000;
+V_tau0 = V_tau0/10000;
+if strcmp(sv_obs_type,"PC") == 1
+V_h0 = V_h0/100;
+    else 
+V_h0 = V_h0/10;
+    end
+V_omegah =  V_omegah*100;
 
 if strcmp(sv_obs_type,"none") 
     h = zeros(T,1);
@@ -171,7 +179,7 @@ end
 
 for loops = 1:n_burn_in+n_samples
     %% Draw theta (MIDAS coefficients)
-   yhat = Y; 
+   yhat = Y;
 
    if ~strcmp(sv_obs_type,"none")
     iOh = iOh;

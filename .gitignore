@@ -4,9 +4,12 @@ Data/BMIDAS_data_restricted*
 Main_new.m
 
 
-output
+/output/*
+!output/T_*
 dm_evaluation.m
 run_both_models.m
 test_notrend_sv.m
 
 oldscripts
+
+archive/

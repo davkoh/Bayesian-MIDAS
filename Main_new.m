@@ -24,9 +24,14 @@ save_output=1;
 %% Load Data
 
 % Data file name
-data_quarterly= readtable('BMIDAS_data.xlsx','Sheet','quarterly','Range','a1:e107');     %BMIDAS_data_restricted.xls - shared publically
-data_monthly= readtable('BMIDAS_data.xlsx','Sheet','monthly','Range','a1:s320');          %BMIDAS_data_restricted.xls - shared publically
-data_transf = readtable('BMIDAS_data.xlsx','Sheet','monthly_metadata','Range','b1:s2');    %BMIDAS_data_restricted.xls - shared publically
+data_quarterly= readtable('BMIDAS_data_public.xlsx','Sheet','quarterly','Range','a1:e107');     %BMIDAS_data_restricted.xls - shared publically
+data_monthly= readtable('BMIDAS_data_public.xlsx','Sheet','monthly','Range','a1:s320');          %BMIDAS_data_restricted.xls - shared publically
+data_transf = readtable('BMIDAS_data_public.xlsx','Sheet','monthly_metadata','Range','b1:s2');    %BMIDAS_data_restricted.xls - shared publically
+
+% data_quarterly= readtable('BMIDAS_data.xlsx','Sheet','quarterly','Range','a1:e107');     %BMIDAS_data_restricted.xls - shared publically
+% data_monthly= readtable('BMIDAS_data.xlsx','Sheet','monthly','Range','a1:s320');          %BMIDAS_data_restricted.xls - shared publically
+% data_transf = readtable('BMIDAS_data.xlsx','Sheet','monthly_metadata','Range','b1:s2');    %BMIDAS_data_restricted.xls - shared publically
+
 
 
 %% DEFINE Sample Period
@@ -40,7 +45,7 @@ beg_eval_per = '31-Mar-2007';  % specify quarter in which to begin evaluation pe
 %% Select indicators 
 
 % SELECT groups of monthly series to include (individual series in each group see below)
-sur = 1;     % survey data: NOT AVAILABLE PUBLICLY - put to zero if you're using data set without survey data
+sur = 0;     % survey data: NOT AVAILABLE PUBLICLY - put to zero if you're using data set without survey data
 act = 1;     % activity and trade data
 lab = 1;     % labour market series
 mort = 1;     % mortgages
@@ -48,10 +53,11 @@ mort = 1;     % mortgages
 % SELECT variables in group to include
 %   (exclude individual series by copying them out of the brakets and spearating by through three dots)
 Varq = {'GDP_Q'};  ...;'CONS';'HOURS';'INV';
-Vars = {'CBI_ES';'CBI_S';'CBI_EO';'PMI_M';'PMI_S';'PMI_C';'GfK'};        % surveys: CBIs,PMIs, GfK
-Vara = {'IoP';'IoS';'Exp';'Imp'};                                        % IoP,IoS,Exports,Imports
-Varl = {'UR';'EMP';'Vacancies';'Hours'}; ...'AWE';'Claimant'             % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
-Varmt = {'Mortgage' };       %                                            % Mortgages
+    %%%%% surveys: CBIs,PMIs, GfK - NOT PUBLICALLY AVAILABLE:THEREFORE LEFT EMPTY HERE!
+if sur ==1, Vars = {'CBI_ES';'CBI_S';'CBI_EO';'PMI_M';'PMI_S';'PMI_C';'GfK'};  else, Vars = {}; end
+if act ==1, Vara = {'IoP';'IoS';'Exp';'Imp'}; else, Vara = {};  end                                     % IoP,IoS,Exports,Imports
+if lab ==1, Varl = {'UR';'EMP';'Vacancies';'Hours'}; else, Varl ={};  end    %'AWE';'Claimant'             % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+if mort ==1, Varmt = {'Mortgage' };  else, Varmt={}; end     %                                            % Mortgages
 
 % DEFINE Transformation
 dyoy     = 0;    % 1- y-o-y growth rates/changes , 0- m-o-m or q-o-q changes
@@ -110,19 +116,19 @@ if pseudo_cal ==1      % if pseudo realtime calendar - make additional choices
 % Each variable (same order as defined above) is assigned a publication delay according to the latest month it is available for at the end of a quarter.
 % I.e., for Q2 nowcasts, if variable is available up until June, it receives a 0, if up until April receives a -2 (June = 0, May=-1, April =-2); and for Q1 nowcasts: March=0, Feb=-1,Jan=-2.
     cal.q_delay = [-2];                                                        % quarterly: GDP
-    cal.s_delay = [0;0;0;-1;-1;-1;0];                                          % surveys: CBIs,PMIs, GfK
-    cal.a_delay = [-2;-2;-2;-2];                                               % IoP,IoS,Exports,Imports
-    cal.l_delay = [-2;-2;-2;-2];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count,
-    cal.mt_delay = [-1];                                                       % Mortgages
+   if sur ==1, cal.s_delay = [0;0;0;-1;-1;-1;0]; else, cal.s_delay =  []; end  %   % surveys: CBIs,PMIs, GfK -  LEFT EMPTY!!
+   if act ==1, cal.a_delay = [-2;-2;-2;-2];      else,  cal.a_pubseq =[]; end      % IoP,IoS,Exports,Imports
+   if lab ==1, cal.l_delay = [-2;-2;-2;-2];      else,  cal.l_pubseq =[]; end      % UE,EMP,Hours,Vacancies, AWE, Claimant count,
+   if mort ==1, cal.mt_delay = [-1];             else,  cal.mt_pubseq =[]; end     % Mortgages
     input.pubdelay = [cal.q_delay; sur*cal.s_delay; act*cal.a_delay; lab*cal.l_delay; mort*cal.mt_delay];    % combine delays in one vector
 
 %%% DEFINE Publication release order for stylised calendar month
 % numbering identifies order of publication in an idealised month, same number specified if variables are released on the same release day
     cal.q_pubseq = [2];
-    cal.s_pubseq = [5;5;5;1;1;1;5];                                         % surveys: CBIs,PMIs, GfK
-    cal.a_pubseq = [3;3;3;3];                                               % IoP,IoS,Exports,Imports
-    cal.l_pubseq = [4;4;4;4];                                               % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
-    cal.mt_pubseq = [6];                                                    % Mortgages
+    if sur ==1, cal.s_pubseq = [5;5;5;1;1;1;5]; else,  cal.s_pubseq =[]; end   % surveys: CBIs,PMIs, GfK -  LEFT EMPTY!!
+    if act ==1, cal.a_pubseq = [3;3;3;3]; else,  cal.a_pubseq =[]; end              % IoP,IoS,Exports,Imports
+    if lab ==1, cal.l_pubseq = [4;4;4;4]; else,  cal.l_pubseq =[]; end              % UE,EMP,Hours,Vacancies, AWE, Claimant count, 
+    if mort ==1, cal.mt_pubseq = [6];  else,  cal.mt_pubseq =[]; end                % Mortgages
     input.pubseq= [cal.q_pubseq; sur*cal.s_pubseq; act*cal.a_pubseq; lab*cal.l_pubseq; mort*cal.mt_pubseq];    % combine pub sequences in one vector
 
 % DEFINE number of monthly lags in quarter    
@@ -149,10 +155,16 @@ end
 % adjust quarterly data for publication lag
 y=y_q(1+input.qlag+3*dyoy:end);  
 d_q=d_q(1+input.qlag+3*dyoy:end);   
-Tq = size(y);
+Tq = size(y,1); % Get number of quarters
 
 % Number of nowcast quarters: either only latest or all evaluation period
-nfor = 1+ eval_full*(size(d_q,1)-find(d_q==beg_eval_per)-1);
+eval_start_idx = find(d_q==datetime(beg_eval_per,'InputFormat','dd-MMM-yyyy'));
+if isempty(eval_start_idx)
+    warning('Evaluation start date %s not found in d_q. Using default.', beg_eval_per);
+    eval_start_idx = find(d_q >= datetime(beg_eval_per,'InputFormat','dd-MMM-yyyy'), 1);
+    if isempty(eval_start_idx), eval_start_idx = length(d_q); end
+end
+nfor = 1+ eval_full*(size(d_q,1)-eval_start_idx-1);
 tin = size(d_q,1)-1-nfor; % Initial in-sample period
 
 %%%%%%% monthly data vector brought into UMIDAS form 
@@ -242,7 +254,6 @@ prior.sv_obs = "fixed_SV";
     % "none"     :   σ^{2,y}_t = σ^2, σ^2 ∝ 1/σ^2
     % "fixed_SV" :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h) 
     % "PC"       :   σ^{2,y}_t = exp(h_t), (h_t|h_{t-1},V^2_h) ~ N(h_{t-1},ω^2_h)  ,π(V_i^2|ξ_i) for i ∈ {ω_h,h_0} Penalised complexity hierarchical prior
-    % "DHS"      :   σ^{2,y}_t follows a the dynamic horseshoe prior of Kowal et al. (2019)
 
 % if "fixed_SV":  (h|h_{t-1}) ~ N(h_{t-1},σ^{2,h}_t));   ω_h ~ N(0,V^2_{ω_h})  h_0 ~ N(0,V^2_{h_0})
 V_omegah = .001; 
@@ -275,9 +286,17 @@ y_pred_all = zeros(MCMC,vint,nfor); % stores predictive distributions for each n
 rtresid_all = zeros(vint,nfor); % stores residuals for each nowcast, based on mean predictive
 rtlogscores_all = zeros(vint,nfor); % stores log-scores for each nowcast
 yf_all =zeros(nfor,1); % Saves the out-of-sample LHS variable for each quarter
-dq_nfor = []; % saves dates of quarters to be nowcasted
+dq_nfor = NaT(1, nfor); % saves dates of quarters to be nowcasted (pre-allocated for parfor safety)
 pincl = zeros(vint,max(unique(groupall)),nfor); % saves the inclusion probabilities
-modall = zeros(vint,MCMC,nfor); % saves the model sizes 
+modall = zeros(vint,MCMC,nfor); % saves the model sizes
+cyc_pred_all = zeros(MCMC,vint,nfor); % Pre-allocate cycle predictions
+if ~strcmp(prior.trend_sv,"none")
+    tau_all = zeros(MCMC,vint,nfor); % Pre-allocate trend
+    sv_trend_all = zeros(MCMC,vint,nfor); % Pre-allocate trend SV
+end
+if ~strcmp(prior.sv_obs,"none")
+    sv_all = zeros(MCMC,vint,nfor); % Pre-allocate observation SV
+end 
 
 % Collect prior coefficients
 prior.a_g = a_g;
@@ -402,19 +421,21 @@ rtresid = [rtresid;res1];
 end
 
 %% Save output
-dq_nfor = [dq_nfor d_q(tin+tperiod)];
+dq_nfor(tperiod) = d_q(tin+tperiod);
 crps_all(:,tperiod) = crpsv;
 rtresid_all(:,tperiod)= rtresid;
 y_pred_all(:,:,tperiod) = y_pred';
+% Only save cycle predictions and trend/SV if not MAL prior
+% (get_nowcasts only populates these when midas_prior != MAL)
 if ~strcmp(prior.midas,"MAL")
-cyc_pred_all(:,:,tperiod) = cycpredv';
-if ~strcmp(prior.trend_sv,"none")
-    tau_all(:,:,tperiod) = trendv';
-    sv_trend_all(:,:,tperiod) = sv_trendv';
-end
-if ~strcmp(prior.sv_obs,"none")
-    sv_all(:,:,tperiod) = svv';
-end
+    cyc_pred_all(:,:,tperiod) = cycpredv';
+    if ~strcmp(prior.trend_sv,"none")
+        tau_all(:,:,tperiod) = trendv';
+        sv_trend_all(:,:,tperiod) = sv_trendv';
+    end
+    if ~strcmp(prior.sv_obs,"none")
+        sv_all(:,:,tperiod) = svv';
+    end
 end
 
 end
@@ -437,13 +458,27 @@ end
 if ~strcmp(prior.sv_obs,"none")
     output.sv_all = sv_all;
 end
-output.cyc_pred_all = cyc_pred_all;
+% Only include cycle predictions if not MAL prior
+if ~strcmp(prior.midas,"MAL")
+    output.cyc_pred_all = cyc_pred_all;
+end
 output.var_names = varnames_qm(1:end-1);
 
  
 % Save Output
+dataParts = strings(0,1);
+if sur == 1,  dataParts(end+1) = "sur"; end
+if act == 1,  dataParts(end+1) = "act"; end
+if lab == 1,  dataParts(end+1) = "lab"; end
+if mort == 1, dataParts(end+1) = "mort"; end
+if isempty(dataParts)
+    dataTag = "data_none";
+else
+    dataTag = "data_" + join(dataParts, "");
+end
 output.modelname = strcat('T_',prior.trend_sv, '_OBS_', prior.sv_obs, '_',...
     prior.tail_type, '_BMIDAS_',midas_type,'_', prior.midas,'_', prior.gigg_hyper,...
+    '_', char(dataTag),...
     '_postspars_',post_spars);
 
 % Create folder name based on model definition
@@ -488,12 +523,16 @@ fig1 = figure;
 k=[2;3;4];  % choose which periods to depict - periods(k)
 
 t = tiledlayout(2,length(k), 'TileSpacing','compact', 'Padding','compact');
-labels = {'135','120','110','95','85','75','60','50','35','15'};
-xticks_vals = [1,3,5,7,9,11,13,15,17,19];
 
 for j=1:length(k) 
+    nPeriods = numel(rmsfe{k(j)});
+    xVals = 1:nPeriods;
+    nTicks = min(10, nPeriods);
+    xticks_vals = unique(round(linspace(1, nPeriods, nTicks)));
+    xtick_labels = string(round(linspace(135, 15, numel(xticks_vals))));
+
     ax1 = nexttile(j); % RMSFE
-    plot(ax1, rmsfe{k(j)}, 'k', 'LineWidth', 2);
+    plot(ax1, xVals, rmsfe{k(j)}, 'k', 'LineWidth', 2);
     if j==1,ylabel(ax1, 'RMSFE', 'FontSize', 16); end
     if j<3,ylim([0;1.5]);end
     set(ax1, 'FontSize', 12)
@@ -501,11 +540,11 @@ for j=1:length(k)
 
     % CRPS
     ax2 = nexttile(j+3);
-    plot(ax2, rtcrps{k(j)}, 'k', 'LineWidth', 2);
+    plot(ax2, xVals, rtcrps{k(j)}, 'k', 'LineWidth', 2);
     if j==1, ylabel(ax2, 'CRPS', 'FontSize', 16); end
     if j<3,ylim([0;1.5]);end
-    xlim(ax1, [1;19]); xticks(ax1, xticks_vals); xticklabels(ax1, labels);
-    xlim(ax2, [1;19]);  xticks(ax2, xticks_vals); xticklabels(ax2, labels);
+    xlim(ax1, [1; max(nPeriods,1)]); xticks(ax1, xticks_vals); xticklabels(ax1, xtick_labels);
+    xlim(ax2, [1; max(nPeriods,1)]);  xticks(ax2, xticks_vals); xticklabels(ax2, xtick_labels);
     set(ax2, 'FontSize', 12)
 end
 xlabel(t, 'Days Until GDP Release','FontSize',16);
@@ -521,9 +560,6 @@ figname = fullfile(foldername, strcat('Figure_Eval_Metrics'));
 
 fig2 = figure;
 
- YLabels = 1:vint;
-    CustomYLabels = string(YLabels);
-    CustomYLabels([2 3 5 6 8 9 11 12 14 15 17 18]) = "";
     k=[5;4];  % choose which periods to plot
     for j=1:length(k)
     subplot(2,1,j)
@@ -532,7 +568,11 @@ fig2 = figure;
     colormap(flipud(hot))
     hm.GridVisible = 'off';
     hm.XDisplayLabels = output.var_names;
-    hm.YDisplayLabels = CustomYLabels;
+    rowCount = size(temp,1);
+    yLabels = string(1:rowCount);
+    blankIdx = intersect([2 3 5 6 8 9 11 12 14 15 17 18], 1:rowCount);
+    yLabels(blankIdx) = "";
+    hm.YDisplayLabels = yLabels;
     ylabel('Nowcast Periods')
     title(strjoin(periods(k(j),:), ':'));
     hm.FontSize = 15;
@@ -553,4 +593,174 @@ figname = fullfile(foldername, strcat('Figure_InclProb.pdf'));
 if ~strcmp(prior.trend_sv,"none")
  plot_trend_decomposition(output,[1 12 vint],foldername)
 end
+
+
+%% ===================================================================
+%% DIEBOLD-MARIANO TEST STATISTICS & SUBSAMPLE EVALUATION
+%% ===================================================================
+%  Compute RMSFE, CRPS, WQS for current model relative to MS benchmark
+%  Export results to Excel with significance stars
+
+fprintf('\n--- Subsample Model Evaluation vs MS Benchmark ---\n');
+
+% Define subsamples
+subsample_def = { ...
+    'Full',      '',           ''; ...
+    'GFC',       '',           'Dec-2009'; ...
+    'Tranquil',  'Jan-2010',   'Dec-2019'; ...
+    'Pandemic',  'Jan-2020',   ''; ...
+    'Pre',       '',           'Dec-2019'; ...
+};
+
+subsample_names = string(subsample_def(:,1))';
+nsub = size(subsample_def, 1);
+
+% WQS settings
+wqs_quantiles = 0.05:0.05:0.95;
+wqs_weighting = 3;   % 1 = uniform, 2 = centre-weighted, 3 = tail-weighted
+
+% Get reference dates
+dq_ref = output.d_q;
+if isdatetime(dq_ref), dq_ref.Format = 'MMM-yyyy'; end
+
+% Calculate WQS for current model
+fprintf('Computing WQS for current model...\n');
+wqs_all = calculateWQS(output.y_pred_all, output.yf, wqs_quantiles, wqs_weighting);
+
+% Load MS benchmark model
+fprintf('Loading MS benchmark model...\n');
+ms_candidates = [ ...
+    "T_none_OBS_none_norm_BMIDAS_almon_MAL__" + dataTag + "_postspars_yes"; ...
+    "T_none_OBS_none_norm_BMIDAS_almon_MAL__postspars_yes" ...
+];
+ms_output = [];
+for candidate = ms_candidates'
+    ms_matfile = fullfile(outputfolder, char(candidate), 'results.mat');
+    if ~isfile(ms_matfile)
+        continue;
+    end
+
+    ms_raw = load(ms_matfile);
+    candidate_output = ms_raw.output;
+    if size(candidate_output.resid_all,1) ~= size(output.resid_all,1)
+        warning('MS benchmark %s has %d nowcast periods, but current output has %d. Skipping this benchmark.', ...
+            char(candidate), size(candidate_output.resid_all,1), size(output.resid_all,1));
+        continue;
+    end
+
+    ms_output = candidate_output;
+    ms_wqs = calculateWQS(ms_output.y_pred_all, ms_output.yf, wqs_quantiles, wqs_weighting);
+    break;
+end
+
+if isempty(ms_output)
+    warning('No compatible MS benchmark model found. Skipping DM evaluation.');
+end
+
+% Skip DM evaluation if MS model not available
+if isempty(ms_output)
+    fprintf('Skipping DM evaluation (MS benchmark not available).\n');
+    return;
+end
+
+% Resolve subsamples
+subsample_ranges = cell(nsub, 1);
+for ss = 1:nsub
+    start_str = subsample_def{ss, 2};
+    end_str   = subsample_def{ss, 3};
+    if isempty(start_str), dt_start = dq_ref(1);
+    else
+        try
+            dt_start = datetime(start_str, 'InputFormat', 'MMM-yyyy');
+        catch
+            warning('Invalid start date format for subsample %s: %s', subsample_def{ss,1}, start_str);
+            dt_start = dq_ref(1);
+        end
+    end
+    if isempty(end_str), dt_end = dq_ref(end);
+    else
+        try
+            dt_end = dateshift(datetime(end_str, 'InputFormat', 'MMM-yyyy'), 'end', 'month');
+        catch
+            warning('Invalid end date format for subsample %s: %s', subsample_def{ss,1}, end_str);
+            dt_end = dq_ref(end);
+        end
+    end
+    subsample_ranges{ss} = find(dq_ref >= dt_start & dq_ref <= dt_end);
+    fprintf('Subsample "%s": %d quarters\n', subsample_def{ss,1}, numel(subsample_ranges{ss}));
+end
+
+% Compute scores for current model (averaged over nowcast periods)
+rmsfe_avg = nan(1, nsub);
+crps_avg  = nan(1, nsub);
+wqs_avg   = nan(1, nsub);
+
+% Compute scores for MS benchmark
+ms_rmsfe_avg = nan(1, nsub);
+ms_crps_avg  = nan(1, nsub);
+ms_wqs_avg   = nan(1, nsub);
+
+for ss = 1:nsub
+    cols = subsample_ranges{ss};
+    rmsfe_avg(ss)    = mean(std(output.resid_all(:, cols), 0, 2));
+    crps_avg(ss)     = mean(mean(output.crps_all(:, cols), 2));
+    wqs_avg(ss)      = mean(mean(wqs_all(:, cols), 2));
+    
+    ms_rmsfe_avg(ss) = mean(std(ms_output.resid_all(:, cols), 0, 2));
+    ms_crps_avg(ss)  = mean(mean(ms_output.crps_all(:, cols), 2));
+    ms_wqs_avg(ss)   = mean(mean(ms_wqs(:, cols), 2));
+end
+
+% Build results table with ratios and DM test
+nrows = nsub;
+row_model = repmat(string(output.modelname), nrows, 1);
+row_sub   = subsample_names';
+abs_rmsfe = nan(nrows, 1);
+abs_crps  = nan(nrows, 1);
+abs_wqs   = nan(nrows, 1);
+rel_rmsfe = strings(nrows, 1);
+rel_crps  = strings(nrows, 1);
+rel_wqs   = strings(nrows, 1);
+
+for ss = 1:nsub
+    cols = subsample_ranges{ss};
+    abs_rmsfe(ss) = rmsfe_avg(ss);
+    abs_crps(ss)  = crps_avg(ss);
+    abs_wqs(ss)   = wqs_avg(ss);
+    
+    % Handle empty subsamples
+    if isempty(cols)
+        rel_rmsfe(ss) = 'N/A';
+        rel_crps(ss)  = 'N/A';
+        rel_wqs(ss)   = 'N/A';
+        continue;
+    end
+    
+    % Compute ratios (guard against division by zero)
+    r_rmsfe = rmsfe_avg(ss) / max(ms_rmsfe_avg(ss), 1e-10);
+    r_crps  = crps_avg(ss) / max(ms_crps_avg(ss), 1e-10);
+    r_wqs   = wqs_avg(ss) / max(ms_wqs_avg(ss), 1e-10);
+    
+    % Compute DM p-values. Residuals use squared-error loss, while CRPS/WQS
+    % are already scores and should be compared in levels.
+    [~, pv_r] = dmtest_modified(reshape(ms_output.resid_all(:,cols),[],1), reshape(output.resid_all(:,cols),[],1));
+    [~, pv_c] = dmtest_modified(reshape(ms_output.crps_all(:,cols),[],1), reshape(output.crps_all(:,cols),[],1), 1, 'raw');
+    [~, pv_w] = dmtest_modified(reshape(ms_wqs(:,cols),[],1), reshape(wqs_all(:,cols),[],1), 1, 'raw');
+    
+    % Format with significance stars (ratio < 1 = improvement)
+    rel_rmsfe(ss) = sprintf('%.4f%s', r_rmsfe, sig_stars(r_rmsfe, pv_r));
+    rel_crps(ss)  = sprintf('%.4f%s', r_crps,  sig_stars(r_crps,  pv_c));
+    rel_wqs(ss)   = sprintf('%.4f%s', r_wqs,   sig_stars(r_wqs,   pv_w));
+end
+
+% Create table
+T = table(row_model, row_sub, abs_rmsfe, abs_crps, abs_wqs, rel_rmsfe, rel_crps, rel_wqs, ...
+          'VariableNames', {'Model','Subsample','RMSFE','CRPS','WQS','RMSFE_vs_MS','CRPS_vs_MS','WQS_vs_MS'});
+
+% Export to Excel
+excel_file = fullfile(foldername, sprintf('dm_results_vs_MS_%s.xlsx', datestr(now,'yyyy_mm_dd')));
+fprintf('\nWriting results to:\n  %s\n', excel_file);
+writetable(T, excel_file, 'Sheet', 'vs_MS');
+
+fprintf('Done.  (* p<0.10, ** p<0.05, *** p<0.01 for ratio<1)\n');
 

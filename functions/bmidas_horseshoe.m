@@ -109,6 +109,17 @@ omegag = sqrt(.2);
 h_tilde = zeros(T,1);
 g_tilde = zeros(T,1);
 
+% Keep state-variance scales consistent with bmidas_gigg so PC-prior
+% slice updates start from admissible values.
+V_g0 = V_g0/10000;
+V_tau0 = V_tau0/10000;
+if strcmp(sv_obs_type,"PC") == 1
+    V_h0 = V_h0/100;
+else
+    V_h0 = V_h0/10;
+end
+V_omegah = V_omegah*100;
+
 if strcmp(sv_obs_type,"none") 
     h = zeros(T,1);
     g = zeros(T,1);
